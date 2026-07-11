@@ -1,0 +1,19 @@
+ProcedureID,OPCSCode,ProcedureName,ProcedureCategory,StandardTariffGBP
+PR001,X120,Initial specialist consultation,Consultation,180
+PR002,U201,Blood test panel,Diagnostics,65
+PR003,U501,CT scan,Imaging,420
+PR004,U502,MRI scan,Imaging,700
+PR005,U503,X-ray,Imaging,120
+PR006,K401,Coronary angiography,Cardiology Procedure,2100
+PR007,K751,Echocardiogram,Cardiology Procedure,350
+PR008,W371,Hip replacement,Orthopaedic Surgery,7400
+PR009,W421,Knee replacement,Orthopaedic Surgery,6800
+PR010,H011,Appendicectomy,General Surgery,3200
+PR011,J183,Laparoscopic cholecystectomy,General Surgery,4200
+PR012,R171,Chemotherapy cycle,Oncology Treatment,1800
+PR013,R250,Radiotherapy fraction,Oncology Treatment,900
+PR014,Q071,Caesarean section,Maternity Procedure,3900
+PR015,Q100,Normal delivery care,Maternity Procedure,1600
+PR016,A651,Dialysis session,Renal Procedure,300
+PR017,C751,Cataract extraction,Ophthalmology Procedure,2100
+PR018,X999,No procedure recorded,None,0

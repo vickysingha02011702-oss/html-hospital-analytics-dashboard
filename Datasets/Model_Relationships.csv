@@ -1,0 +1,11 @@
+FromTable,FromColumn,ToTable,ToColumn,Cardinality
+Fact_Encounter,PatientID,Dim_Patient,PatientID,Many-to-one
+Fact_Encounter,HospitalID,Dim_Hospital,HospitalID,Many-to-one
+Fact_Encounter,DepartmentID,Dim_Department,DepartmentID,Many-to-one
+Fact_Encounter,ConsultantID,Dim_Consultant,ConsultantID,Many-to-one
+Fact_Encounter,PrimaryDiagnosisID,Dim_Diagnosis,DiagnosisID,Many-to-one
+Fact_Encounter,ProcedureID,Dim_Procedure,ProcedureID,Many-to-one
+Fact_Encounter,PayerID,Dim_Payer,PayerID,Many-to-one
+Fact_Encounter,PatientHomeLocationID,Dim_Location,LocationID,Many-to-one
+Fact_Encounter,AdmissionDateKey,Dim_Date,DateKey,Many-to-one active
+Fact_Encounter,DischargeDateKey,Dim_Date,DateKey,Many-to-one inactive optional

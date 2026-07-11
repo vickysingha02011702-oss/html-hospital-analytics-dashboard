@@ -1,0 +1,49 @@
+LocationID,City,County,UKRegion,Country,PostcodeArea,OutwardCode,PostcodeSector,SamplePostcode,Latitude,Longitude
+L001,London,Greater London,London,England,SW,SW1,SW1 2,SW1 1ZJ,51.489342,-0.152832
+L002,Manchester,Greater Manchester,North West,England,M,M1,M1 2,M1 9CU,53.475335,-2.275514
+L003,Birmingham,West Midlands,West Midlands,England,B,B1,B1 4,B1 4SV,52.453058,-1.911481
+L004,Leeds,West Yorkshire,Yorkshire and The Humber,England,LS,LS1,LS1 9,LS1 7HQ,53.807049,-1.52744
+L005,Liverpool,Merseyside,North West,England,L,L1,L1 1,L1 3YP,53.397218,-3.015716
+L006,Sheffield,South Yorkshire,Yorkshire and The Humber,England,S,S1,S1 6,S1 2CN,53.35287,-1.445775
+L007,Bristol,Bristol,South West,England,BS,BS1,BS1 5,BS1 1ZQ,51.457036,-2.554782
+L008,Newcastle upon Tyne,Tyne and Wear,North East,England,NE,NE1,NE1 7,NE1 2TK,55.001358,-1.609504
+L009,Nottingham,Nottinghamshire,East Midlands,England,NG,NG1,NG1 6,NG1 4YC,52.923008,-1.177147
+L010,Leicester,Leicestershire,East Midlands,England,LE,LE1,LE1 5,LE1 2HD,52.628509,-1.143061
+L011,Coventry,West Midlands,West Midlands,England,CV,CV1,CV1 6,CV1 3MM,52.386465,-1.536012
+L012,Derby,Derbyshire,East Midlands,England,DE,DE1,DE1 2,DE1 3TZ,52.904637,-1.477242
+L013,Southampton,Hampshire,South East,England,SO,SO14,SO14 5,SO14 9HX,50.8974,-1.385618
+L014,Portsmouth,Hampshire,South East,England,PO,PO1,PO1 1,PO1 4BL,50.812882,-1.118367
+L015,Brighton,East Sussex,South East,England,BN,BN1,BN1 6,BN1 4WR,50.815194,-0.108182
+L016,Oxford,Oxfordshire,South East,England,OX,OX1,OX1 8,OX1 3JE,51.734264,-1.253404
+L017,Cambridge,Cambridgeshire,East of England,England,CB,CB1,CB1 5,CB1 7UN,52.19564,0.156613
+L018,Norwich,Norfolk,East of England,England,NR,NR1,NR1 3,NR1 9RC,52.648805,1.322677
+L019,Ipswich,Suffolk,East of England,England,IP,IP1,IP1 3,IP1 3XP,52.063449,1.140134
+L020,Plymouth,Devon,South West,England,PL,PL1,PL1 8,PL1 9JT,50.400755,-4.176896
+L021,Exeter,Devon,South West,England,EX,EX1,EX1 2,EX1 9JW,50.707212,-3.548355
+L022,York,North Yorkshire,Yorkshire and The Humber,England,YO,YO1,YO1 3,YO1 8AZ,53.98531,-1.098063
+L023,Hull,East Riding of Yorkshire,Yorkshire and The Humber,England,HU,HU1,HU1 9,HU1 3SD,53.793536,-0.341509
+L024,Cardiff,South Glamorgan,Wales,Wales,CF,CF10,CF10 9,CF10 4EM,51.499976,-3.176343
+L025,Swansea,West Glamorgan,Wales,Wales,SA,SA1,SA1 9,SA1 1VL,51.620602,-3.970769
+L026,Newport,Gwent,Wales,Wales,NP,NP20,NP20 6,NP20 5HB,51.566061,-2.992985
+L027,Edinburgh,City of Edinburgh,Scotland,Scotland,EH,EH1,EH1 2,EH1 2ZR,55.975422,-3.154841
+L028,Glasgow,Glasgow City,Scotland,Scotland,G,G1,G1 9,G1 3EX,55.86247,-4.248314
+L029,Aberdeen,Aberdeen City,Scotland,Scotland,AB,AB10,AB10 5,AB10 9VP,57.182205,-2.064276
+L030,Dundee,Dundee City,Scotland,Scotland,DD,DD1,DD1 4,DD1 5NX,56.472491,-2.975033
+L031,Inverness,Highland,Scotland,Scotland,IV,IV1,IV1 9,IV1 8DH,57.458529,-4.236034
+L032,Belfast,County Antrim,Northern Ireland,Northern Ireland,BT,BT1,BT1 9,BT1 4UH,54.562803,-5.915551
+L033,Derry/Londonderry,County Londonderry,Northern Ireland,Northern Ireland,BT,BT48,BT48 1,BT48 4CB,55.021774,-7.33864
+L034,Reading,Berkshire,South East,England,RG,RG1,RG1 4,RG1 5XR,51.434297,-1.003838
+L035,Milton Keynes,Buckinghamshire,South East,England,MK,MK9,MK9 8,MK9 4RP,52.018929,-0.787615
+L036,Luton,Bedfordshire,East of England,England,LU,LU1,LU1 7,LU1 6PP,51.876392,-0.403965
+L037,Maidstone,Kent,South East,England,ME,ME14,ME14 2,ME14 1NZ,51.259151,0.548017
+L038,Canterbury,Kent,South East,England,CT,CT1,CT1 4,CT1 4GT,51.276603,1.073432
+L039,Stoke-on-Trent,Staffordshire,West Midlands,England,ST,ST1,ST1 5,ST1 8HC,52.998719,-2.154106
+L040,Wolverhampton,West Midlands,West Midlands,England,WV,WV1,WV1 9,WV1 2BW,52.62115,-2.105278
+L041,Sunderland,Tyne and Wear,North East,England,SR,SR1,SR1 2,SR1 4FP,54.905895,-1.403838
+L042,Middlesbrough,North Yorkshire,North East,England,TS,TS1,TS1 7,TS1 1FN,54.539351,-1.24247
+L043,Preston,Lancashire,North West,England,PR,PR1,PR1 8,PR1 5PY,53.795212,-2.66842
+L044,Blackpool,Lancashire,North West,England,FY,FY1,FY1 9,FY1 8EG,53.80327,-3.00289
+L045,Bolton,Greater Manchester,North West,England,BL,BL1,BL1 9,BL1 1ZL,53.545902,-2.422308
+L046,Bath,Somerset,South West,England,BA,BA1,BA1 9,BA1 9FB,51.408055,-2.389292
+L047,Chelmsford,Essex,East of England,England,CM,CM1,CM1 3,CM1 2VC,51.747865,0.449964
+L048,Colchester,Essex,East of England,England,CO,CO1,CO1 2,CO1 4UV,51.856982,0.874939

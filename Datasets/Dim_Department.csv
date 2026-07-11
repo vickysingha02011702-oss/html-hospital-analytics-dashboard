@@ -1,0 +1,17 @@
+DepartmentID,DepartmentName,ClinicalGroup,CostIndex,BaseReadmissionRisk
+D001,Accident & Emergency,Emergency Care,1.35,0.18
+D002,Cardiology,Medical Specialties,1.18,0.11
+D003,Orthopaedics,Surgical Specialties,1.05,0.07
+D004,Maternity,Women & Children,0.98,0.02
+D005,Paediatrics,Women & Children,1.08,0.04
+D006,Oncology,Medical Specialties,1.14,0.09
+D007,Neurology,Medical Specialties,1.1,0.08
+D008,General Surgery,Surgical Specialties,1.12,0.06
+D009,Respiratory Medicine,Medical Specialties,1.28,0.12
+D010,Renal Medicine,Medical Specialties,1.07,0.1
+D011,Gastroenterology,Medical Specialties,1.03,0.05
+D012,Dermatology,Outpatient Services,0.76,0.01
+D013,Ophthalmology,Outpatient Services,0.82,0.01
+D014,Mental Health Liaison,Mental Health,1.22,0.07
+D015,Radiology,Diagnostics,0.7,0.01
+D016,Pathology,Diagnostics,0.62,0.0

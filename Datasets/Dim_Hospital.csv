@@ -1,0 +1,17 @@
+HospitalID,HospitalName,HospitalType,NHSRegion,City,County,Country,Postcode,Latitude,Longitude,BedCapacity,EmergencyDepartment
+H001,St Thomas' Medical Centre,Major Teaching Hospital,London,London,Greater London,England,SW1 1ZJ,51.502383,-0.161704,950,Yes
+H002,Royal Victoria General Hospital,Acute Hospital,North West,Manchester,Greater Manchester,England,M1 9CU,53.469761,-2.282546,850,Yes
+H003,Queen Elizabeth Central Hospital,Major Teaching Hospital,West Midlands,Birmingham,West Midlands,England,B1 4SV,52.458209,-1.917481,800,Yes
+H004,Leeds City Hospital,Acute Hospital,Yorkshire and The Humber,Leeds,West Yorkshire,England,LS1 7HQ,53.81992,-1.514368,420,Yes
+H005,Mersey Royal Infirmary,Acute Hospital,North West,Liverpool,Merseyside,England,L1 3YP,53.395967,-3.000762,250,Yes
+H006,South Yorkshire University Hospital,Teaching Hospital,Yorkshire and The Humber,Sheffield,South Yorkshire,England,S1 2CN,53.340068,-1.45438,650,Yes
+H007,Bristol Royal Healthcare Centre,Specialist Hospital,South West,Bristol,Bristol,England,BS1 1ZQ,51.44601,-2.559312,420,Yes
+H008,Newcastle North General Hospital,Acute Hospital,North East,Newcastle upon Tyne,Tyne and Wear,England,NE1 2TK,54.997444,-1.619772,320,Yes
+H009,Cardiff Bay University Hospital,Teaching Hospital,Wales,Cardiff,South Glamorgan,Wales,CF10 4EM,51.503326,-3.161726,950,Yes
+H010,Glasgow Clyde Hospital,Acute Hospital,Scotland,Glasgow,Glasgow City,Scotland,G1 3EX,55.863338,-4.243278,850,Yes
+H011,Edinburgh Royal Medical Centre,Specialist Hospital,Scotland,Edinburgh,City of Edinburgh,Scotland,EH1 2ZR,55.969403,-3.149939,700,Yes
+H012,Belfast City Care Hospital,Acute Hospital,Northern Ireland,Belfast,County Antrim,Northern Ireland,BT1 4UH,54.551266,-5.92734,420,Yes
+H013,Oxford Thames Hospital,Teaching Hospital,South East,Oxford,Oxfordshire,England,OX1 3JE,51.727434,-1.250259,800,Yes
+H014,Cambridge East Hospital,Specialist Hospital,East of England,Cambridge,Cambridgeshire,England,CB1 7UN,52.190926,0.162238,850,No
+H015,Brighton Coast Hospital,Acute Hospital,South East,Brighton,East Sussex,England,BN1 4WR,50.81485,-0.096022,700,Yes
+H016,Exeter West General Hospital,District General Hospital,South West,Exeter,Devon,England,EX1 9JW,50.693736,-3.544326,950,Yes

@@ -1,0 +1,361 @@
+ConsultantID,ConsultantName,Gender,DepartmentID,DepartmentName,Specialty,Grade,YearsExperience,EmploymentType
+C0001,Dr Frances Griffiths,Female,D009,Respiratory Medicine,Respiratory Medicine,Consultant,10,Full-time
+C0002,Dr Valerie Smith,Female,D009,Respiratory Medicine,Respiratory Medicine,Specialty Doctor,29,Full-time
+C0003,Dr Diane Newman,Female,D004,Maternity,Obstetrics and Gynaecology,Registrar,11,Full-time
+C0004,Dr Annette Cox,Female,D012,Dermatology,Dermatology,Consultant,4,Full-time
+C0005,Dr Abdul Hopkins,Male,D002,Cardiology,Cardiology,Consultant,17,Full-time
+C0006,Dr Phillip Higgins,Male,D012,Dermatology,Dermatology,Nurse Consultant,11,Locum
+C0007,Dr Joanne Lloyd,Female,D008,General Surgery,General Surgery,Nurse Consultant,13,Part-time
+C0008,Dr Tina Foster,Female,D001,Accident & Emergency,Emergency Medicine,Specialty Doctor,23,Part-time
+C0009,Dr Heather Ryan,Female,D014,Mental Health Liaison,Psychiatry,Consultant,8,Full-time
+C0010,Dr Victor Harrison,Male,D002,Cardiology,Cardiology,Consultant,31,Full-time
+C0011,Dr Anna Quinn,Female,D008,General Surgery,General Surgery,Consultant,14,Full-time
+C0012,Dr Francesca White,Female,D009,Respiratory Medicine,Respiratory Medicine,Nurse Consultant,19,Full-time
+C0013,Dr Paul Reed,Male,D013,Ophthalmology,Ophthalmology,Registrar,9,Part-time
+C0014,Dr Tracy Harrison,Female,D009,Respiratory Medicine,Respiratory Medicine,Specialty Doctor,18,Full-time
+C0015,Dr Ronald White,Male,D014,Mental Health Liaison,Psychiatry,Specialty Doctor,22,Full-time
+C0016,Dr Raymond Andrews,Male,D004,Maternity,Obstetrics and Gynaecology,Registrar,14,Full-time
+C0017,Dr Judith Warner,Female,D014,Mental Health Liaison,Psychiatry,Consultant,14,Full-time
+C0018,Dr Karl Glover,Male,D003,Orthopaedics,Trauma and Orthopaedics,Specialty Doctor,9,Full-time
+C0019,Dr Kyle Butler,Male,D010,Renal Medicine,Renal Medicine,Specialty Doctor,22,Full-time
+C0020,Dr Gemma Elliott,Female,D010,Renal Medicine,Renal Medicine,Consultant,26,Full-time
+C0021,Dr Max Harvey,Male,D006,Oncology,Clinical Oncology,Consultant,2,Full-time
+C0022,Dr Roy Ferguson,Male,D007,Neurology,Neurology,Registrar,22,Full-time
+C0023,Dr Stephanie Norton,Female,D015,Radiology,Radiology,Consultant,12,Full-time
+C0024,Dr Dylan Young,Male,D010,Renal Medicine,Renal Medicine,Consultant,17,Full-time
+C0025,Dr Paula Mellor,Female,D008,General Surgery,General Surgery,Consultant,4,Full-time
+C0026,Dr Lindsey Rees,Female,D016,Pathology,Pathology,Consultant,14,Full-time
+C0027,Dr Mohamed Wilson,Male,D013,Ophthalmology,Ophthalmology,Consultant,11,Full-time
+C0028,Dr Donna Robinson,Female,D001,Accident & Emergency,Emergency Medicine,Registrar,16,Full-time
+C0029,Dr Megan Taylor,Female,D015,Radiology,Radiology,Consultant,9,Full-time
+C0030,Dr Karl White,Male,D015,Radiology,Radiology,Nurse Consultant,30,Full-time
+C0031,Dr Elliott Lee,Male,D014,Mental Health Liaison,Psychiatry,Registrar,32,Full-time
+C0032,Dr Jonathan Middleton,Male,D008,General Surgery,General Surgery,Registrar,35,Full-time
+C0033,Dr Stuart Davies,Male,D008,General Surgery,General Surgery,Consultant,20,Full-time
+C0034,Dr Bruce Cross,Male,D011,Gastroenterology,Gastroenterology,Registrar,7,Full-time
+C0035,Dr Brandon Hammond,Male,D008,General Surgery,General Surgery,Specialty Doctor,15,Full-time
+C0036,Dr Elliott Thompson,Male,D014,Mental Health Liaison,Psychiatry,Consultant,28,Full-time
+C0037,Dr Adrian Humphries,Male,D014,Mental Health Liaison,Psychiatry,Registrar,3,Part-time
+C0038,Dr Karl Dixon,Male,D013,Ophthalmology,Ophthalmology,Consultant,24,Full-time
+C0039,Dr Stanley Holmes,Male,D013,Ophthalmology,Ophthalmology,Consultant,16,Full-time
+C0040,Dr Jamie Richardson,Male,D009,Respiratory Medicine,Respiratory Medicine,Consultant,26,Full-time
+C0041,Dr Jacqueline Wilson,Female,D013,Ophthalmology,Ophthalmology,Registrar,10,Locum
+C0042,Dr Andrew Nelson,Male,D001,Accident & Emergency,Emergency Medicine,Specialty Doctor,3,Full-time
+C0043,Dr Suzanne Phillips,Female,D014,Mental Health Liaison,Psychiatry,Registrar,13,Full-time
+C0044,Dr Kenneth Johnston,Male,D013,Ophthalmology,Ophthalmology,Consultant,22,Full-time
+C0045,Dr Glen Hawkins,Male,D013,Ophthalmology,Ophthalmology,Registrar,28,Full-time
+C0046,Dr Charles Kelly,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,5,Locum
+C0047,Dr Rachael Byrne,Female,D012,Dermatology,Dermatology,Specialty Doctor,4,Part-time
+C0048,Dr Sian Hale,Female,D008,General Surgery,General Surgery,Registrar,11,Full-time
+C0049,Dr Holly Davidson,Female,D016,Pathology,Pathology,Consultant,15,Full-time
+C0050,Dr Leonard Powell,Male,D009,Respiratory Medicine,Respiratory Medicine,Consultant,9,Part-time
+C0051,Dr Iain Rowe,Male,D006,Oncology,Clinical Oncology,Consultant,3,Locum
+C0052,Dr Iain Matthews,Male,D013,Ophthalmology,Ophthalmology,Registrar,14,Full-time
+C0053,Dr Natalie Turner,Female,D008,General Surgery,General Surgery,Specialty Doctor,21,Part-time
+C0054,Dr Diane Bond,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,29,Full-time
+C0055,Dr Jordan Davey,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,28,Part-time
+C0056,Dr William Gould,Male,D004,Maternity,Obstetrics and Gynaecology,Nurse Consultant,31,Full-time
+C0057,Dr Tracy James,Female,D014,Mental Health Liaison,Psychiatry,Specialty Doctor,19,Full-time
+C0058,Dr Phillip Anderson,Male,D016,Pathology,Pathology,Consultant,19,Full-time
+C0059,Dr Lorraine Palmer,Female,D008,General Surgery,General Surgery,Consultant,30,Full-time
+C0060,Dr Donald Hill,Male,D015,Radiology,Radiology,Consultant,33,Part-time
+C0061,Dr Martyn Taylor,Male,D006,Oncology,Clinical Oncology,Consultant,18,Full-time
+C0062,Dr Rebecca Davies,Female,D009,Respiratory Medicine,Respiratory Medicine,Consultant,14,Full-time
+C0063,Dr Kevin Richardson,Male,D014,Mental Health Liaison,Psychiatry,Consultant,17,Full-time
+C0064,Dr Max Myers,Male,D016,Pathology,Pathology,Registrar,7,Full-time
+C0065,Dr Sian Cook,Female,D013,Ophthalmology,Ophthalmology,Consultant,25,Full-time
+C0066,Dr Sean Williams,Male,D012,Dermatology,Dermatology,Nurse Consultant,23,Full-time
+C0067,Dr Julian Harper,Male,D015,Radiology,Radiology,Consultant,16,Full-time
+C0068,Dr Wayne Page,Male,D007,Neurology,Neurology,Consultant,13,Full-time
+C0069,Dr Craig Buckley,Male,D016,Pathology,Pathology,Specialty Doctor,35,Full-time
+C0070,Dr Michelle Taylor,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,25,Full-time
+C0071,Dr Leanne Gray,Female,D001,Accident & Emergency,Emergency Medicine,Consultant,5,Full-time
+C0072,Dr Howard John,Male,D005,Paediatrics,Paediatrics,Consultant,2,Full-time
+C0073,Dr Martin Patel,Male,D016,Pathology,Pathology,Consultant,13,Locum
+C0074,Dr Jonathan Powell,Male,D009,Respiratory Medicine,Respiratory Medicine,Consultant,6,Full-time
+C0075,Dr Jasmine Bell,Female,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,21,Full-time
+C0076,Dr Abbie Duncan,Female,D008,General Surgery,General Surgery,Consultant,28,Full-time
+C0077,Dr John Griffiths,Male,D008,General Surgery,General Surgery,Consultant,30,Full-time
+C0078,Dr Jeremy Shaw,Male,D014,Mental Health Liaison,Psychiatry,Consultant,5,Full-time
+C0079,Dr Natasha Smith,Female,D004,Maternity,Obstetrics and Gynaecology,Specialty Doctor,18,Full-time
+C0080,Dr Alice Shaw,Female,D006,Oncology,Clinical Oncology,Consultant,6,Full-time
+C0081,Dr Simon Cunningham,Male,D014,Mental Health Liaison,Psychiatry,Specialty Doctor,32,Full-time
+C0082,Dr Norman Sharp,Male,D008,General Surgery,General Surgery,Specialty Doctor,31,Full-time
+C0083,Dr Vincent Miller,Male,D008,General Surgery,General Surgery,Registrar,14,Full-time
+C0084,Dr Samantha Knowles,Female,D008,General Surgery,General Surgery,Registrar,11,Full-time
+C0085,Dr Henry O'Brien,Male,D006,Oncology,Clinical Oncology,Specialty Doctor,20,Full-time
+C0086,Dr Arthur Carr,Male,D015,Radiology,Radiology,Specialty Doctor,19,Full-time
+C0087,Dr Phillip Arnold,Male,D016,Pathology,Pathology,Consultant,4,Part-time
+C0088,Dr Mathew Mitchell,Male,D011,Gastroenterology,Gastroenterology,Consultant,16,Locum
+C0089,Dr Leigh Lawson,Male,D001,Accident & Emergency,Emergency Medicine,Consultant,13,Full-time
+C0090,Dr Dean Matthews,Male,D015,Radiology,Radiology,Consultant,29,Full-time
+C0091,Dr Hollie Brooks,Female,D016,Pathology,Pathology,Consultant,28,Full-time
+C0092,Dr Beverley Lyons,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,33,Full-time
+C0093,Dr Kimberley O'Neill,Female,D013,Ophthalmology,Ophthalmology,Consultant,22,Full-time
+C0094,Dr Nathan Collins,Male,D004,Maternity,Obstetrics and Gynaecology,Registrar,2,Full-time
+C0095,Dr Mark Fox,Male,D015,Radiology,Radiology,Consultant,35,Full-time
+C0096,Dr Geoffrey Fox,Male,D016,Pathology,Pathology,Registrar,15,Full-time
+C0097,Dr Paul Hammond,Male,D005,Paediatrics,Paediatrics,Consultant,33,Full-time
+C0098,Dr Vanessa Howard,Female,D008,General Surgery,General Surgery,Consultant,2,Full-time
+C0099,Dr Janet Howe,Female,D003,Orthopaedics,Trauma and Orthopaedics,Nurse Consultant,9,Full-time
+C0100,Dr Maria Bruce,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,20,Full-time
+C0101,Dr Terence White,Male,D009,Respiratory Medicine,Respiratory Medicine,Registrar,32,Full-time
+C0102,Dr Norman Stevens,Male,D005,Paediatrics,Paediatrics,Consultant,34,Part-time
+C0103,Dr Emily Wood,Female,D005,Paediatrics,Paediatrics,Consultant,28,Full-time
+C0104,Dr Jemma Allen,Female,D009,Respiratory Medicine,Respiratory Medicine,Consultant,21,Part-time
+C0105,Dr Lesley McKenzie,Female,D016,Pathology,Pathology,Consultant,32,Full-time
+C0106,Dr Dennis Bates,Male,D013,Ophthalmology,Ophthalmology,Registrar,14,Locum
+C0107,Dr Anthony Slater,Male,D008,General Surgery,General Surgery,Consultant,28,Full-time
+C0108,Dr Edward Davison,Male,D016,Pathology,Pathology,Consultant,11,Full-time
+C0109,Dr Joan Taylor,Female,D002,Cardiology,Cardiology,Consultant,23,Part-time
+C0110,Dr Margaret Davies,Female,D015,Radiology,Radiology,Consultant,31,Full-time
+C0111,Dr Brandon Gibson,Male,D005,Paediatrics,Paediatrics,Registrar,11,Full-time
+C0112,Dr Reece Briggs,Male,D009,Respiratory Medicine,Respiratory Medicine,Specialty Doctor,27,Full-time
+C0113,Dr Alexander Smith,Male,D011,Gastroenterology,Gastroenterology,Nurse Consultant,33,Part-time
+C0114,Dr Barbara Wilkinson,Female,D002,Cardiology,Cardiology,Consultant,20,Locum
+C0115,Dr Brian Oliver,Male,D003,Orthopaedics,Trauma and Orthopaedics,Nurse Consultant,8,Full-time
+C0116,Dr Olivia Hall,Female,D010,Renal Medicine,Renal Medicine,Consultant,5,Full-time
+C0117,Dr Ian Williams,Male,D012,Dermatology,Dermatology,Consultant,35,Full-time
+C0118,Dr Harriet Gibson,Female,D006,Oncology,Clinical Oncology,Consultant,26,Full-time
+C0119,Dr Victor Watkins,Male,D008,General Surgery,General Surgery,Registrar,11,Full-time
+C0120,Dr Thomas Morgan,Male,D009,Respiratory Medicine,Respiratory Medicine,Consultant,2,Part-time
+C0121,Dr Terence Thompson,Male,D015,Radiology,Radiology,Specialty Doctor,12,Full-time
+C0122,Dr Norman Jones,Male,D012,Dermatology,Dermatology,Specialty Doctor,29,Full-time
+C0123,Dr Marc Poole,Male,D015,Radiology,Radiology,Consultant,26,Part-time
+C0124,Dr Jennifer Lamb,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,24,Full-time
+C0125,Dr Georgina Pritchard,Female,D010,Renal Medicine,Renal Medicine,Nurse Consultant,27,Full-time
+C0126,Dr Julian Hussain,Male,D002,Cardiology,Cardiology,Registrar,20,Part-time
+C0127,Dr Damien Andrews,Male,D008,General Surgery,General Surgery,Consultant,14,Full-time
+C0128,Dr Ashleigh Adams,Female,D005,Paediatrics,Paediatrics,Registrar,4,Full-time
+C0129,Dr June Nash,Female,D015,Radiology,Radiology,Consultant,10,Full-time
+C0130,Dr Sean Lloyd,Male,D010,Renal Medicine,Renal Medicine,Specialty Doctor,13,Full-time
+C0131,Dr Matthew Jackson,Male,D012,Dermatology,Dermatology,Registrar,18,Part-time
+C0132,Dr Mathew Long,Male,D016,Pathology,Pathology,Specialty Doctor,23,Part-time
+C0133,Dr Sally George,Female,D015,Radiology,Radiology,Consultant,16,Part-time
+C0134,Dr Iain Jones,Male,D013,Ophthalmology,Ophthalmology,Consultant,27,Full-time
+C0135,Dr Arthur Fraser,Male,D004,Maternity,Obstetrics and Gynaecology,Consultant,18,Full-time
+C0136,Dr Kathryn Francis,Female,D012,Dermatology,Dermatology,Specialty Doctor,32,Full-time
+C0137,Dr Lucy Rees,Female,D011,Gastroenterology,Gastroenterology,Specialty Doctor,31,Part-time
+C0138,Dr Joshua Davies,Male,D010,Renal Medicine,Renal Medicine,Consultant,4,Locum
+C0139,Dr Terence Ahmed,Male,D010,Renal Medicine,Renal Medicine,Consultant,17,Part-time
+C0140,Dr Glen Smith,Male,D005,Paediatrics,Paediatrics,Consultant,28,Full-time
+C0141,Dr Joel Thomas,Male,D005,Paediatrics,Paediatrics,Specialty Doctor,33,Full-time
+C0142,Dr Hannah Burton,Female,D009,Respiratory Medicine,Respiratory Medicine,Specialty Doctor,15,Full-time
+C0143,Dr Iain Armstrong,Male,D008,General Surgery,General Surgery,Consultant,25,Full-time
+C0144,Dr Sally Hudson,Female,D012,Dermatology,Dermatology,Consultant,14,Locum
+C0145,Dr Clare Davies,Female,D015,Radiology,Radiology,Specialty Doctor,3,Full-time
+C0146,Dr Sally Smith,Female,D011,Gastroenterology,Gastroenterology,Nurse Consultant,15,Full-time
+C0147,Dr Andrea Clarke,Female,D007,Neurology,Neurology,Registrar,16,Full-time
+C0148,Dr Josephine Hodgson,Female,D005,Paediatrics,Paediatrics,Consultant,11,Locum
+C0149,Dr Sally Murray,Female,D009,Respiratory Medicine,Respiratory Medicine,Consultant,3,Full-time
+C0150,Dr Deborah Bailey,Female,D012,Dermatology,Dermatology,Specialty Doctor,3,Full-time
+C0151,Dr Dorothy Turner,Female,D002,Cardiology,Cardiology,Specialty Doctor,35,Full-time
+C0152,Dr Adam Ford,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,25,Full-time
+C0153,Dr Kenneth Lowe,Male,D004,Maternity,Obstetrics and Gynaecology,Consultant,4,Part-time
+C0154,Dr Gary McDonald,Male,D010,Renal Medicine,Renal Medicine,Specialty Doctor,3,Full-time
+C0155,Dr Joshua Shaw,Male,D016,Pathology,Pathology,Consultant,8,Full-time
+C0156,Dr Sheila Kirby,Female,D015,Radiology,Radiology,Registrar,22,Full-time
+C0157,Dr Beverley Lee,Female,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,22,Full-time
+C0158,Dr Jay Stokes,Male,D010,Renal Medicine,Renal Medicine,Consultant,29,Full-time
+C0159,Dr Jill Hill,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,16,Full-time
+C0160,Dr Brett Warren,Male,D015,Radiology,Radiology,Consultant,8,Full-time
+C0161,Dr Kieran Begum,Male,D011,Gastroenterology,Gastroenterology,Consultant,11,Full-time
+C0162,Dr Jane Singh,Female,D016,Pathology,Pathology,Consultant,7,Full-time
+C0163,Dr Joseph Pritchard,Male,D004,Maternity,Obstetrics and Gynaecology,Registrar,5,Full-time
+C0164,Dr Michelle Cox,Female,D011,Gastroenterology,Gastroenterology,Consultant,29,Part-time
+C0165,Dr Martin Sharpe,Male,D002,Cardiology,Cardiology,Specialty Doctor,24,Full-time
+C0166,Dr Sylvia Kelly,Female,D007,Neurology,Neurology,Specialty Doctor,16,Part-time
+C0167,Dr Ronald Martin,Male,D012,Dermatology,Dermatology,Consultant,19,Full-time
+C0168,Dr Ellie Davis,Female,D014,Mental Health Liaison,Psychiatry,Specialty Doctor,19,Full-time
+C0169,Dr Howard Jones,Male,D009,Respiratory Medicine,Respiratory Medicine,Registrar,24,Full-time
+C0170,Dr Richard Green,Male,D005,Paediatrics,Paediatrics,Consultant,3,Full-time
+C0171,Dr Phillip Norton,Male,D007,Neurology,Neurology,Consultant,23,Full-time
+C0172,Dr Daniel Harper,Male,D010,Renal Medicine,Renal Medicine,Registrar,7,Part-time
+C0173,Dr Emily Todd,Female,D005,Paediatrics,Paediatrics,Registrar,5,Full-time
+C0174,Dr Wayne Wade,Male,D009,Respiratory Medicine,Respiratory Medicine,Specialty Doctor,33,Full-time
+C0175,Dr Ross Fisher,Male,D014,Mental Health Liaison,Psychiatry,Consultant,34,Full-time
+C0176,Dr Shirley Moore,Female,D014,Mental Health Liaison,Psychiatry,Consultant,33,Full-time
+C0177,Dr Victoria Tucker,Female,D010,Renal Medicine,Renal Medicine,Consultant,5,Full-time
+C0178,Dr Beth Cooke,Female,D010,Renal Medicine,Renal Medicine,Registrar,18,Full-time
+C0179,Dr Teresa Fowler,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,29,Full-time
+C0180,Dr Sheila Jackson,Female,D013,Ophthalmology,Ophthalmology,Consultant,24,Full-time
+C0181,Dr Liam Sykes,Male,D002,Cardiology,Cardiology,Consultant,6,Part-time
+C0182,Dr Michael Brookes,Male,D014,Mental Health Liaison,Psychiatry,Specialty Doctor,28,Full-time
+C0183,Dr Nicola Sutton,Female,D013,Ophthalmology,Ophthalmology,Nurse Consultant,12,Part-time
+C0184,Dr Stuart Richardson,Male,D015,Radiology,Radiology,Consultant,8,Full-time
+C0185,Dr Charlene Webb,Female,D013,Ophthalmology,Ophthalmology,Consultant,21,Part-time
+C0186,Dr Leonard Young,Male,D008,General Surgery,General Surgery,Registrar,6,Full-time
+C0187,Dr Yvonne Simpson,Female,D004,Maternity,Obstetrics and Gynaecology,Registrar,24,Full-time
+C0188,Dr Ann Bennett,Female,D005,Paediatrics,Paediatrics,Consultant,18,Full-time
+C0189,Dr Elaine Taylor,Female,D005,Paediatrics,Paediatrics,Consultant,33,Full-time
+C0190,Dr Craig Wallace,Male,D015,Radiology,Radiology,Registrar,22,Full-time
+C0191,Dr James Gardner,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,21,Part-time
+C0192,Dr Mohammed Gill,Male,D002,Cardiology,Cardiology,Consultant,21,Full-time
+C0193,Dr Chelsea Roberts,Female,D002,Cardiology,Cardiology,Consultant,20,Full-time
+C0194,Dr Harry Phillips,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,4,Full-time
+C0195,Dr Bruce Griffiths,Male,D007,Neurology,Neurology,Specialty Doctor,34,Full-time
+C0196,Dr Jack Taylor,Male,D002,Cardiology,Cardiology,Consultant,23,Locum
+C0197,Dr Natalie Ryan,Female,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,30,Locum
+C0198,Dr Bernard Stone,Male,D006,Oncology,Clinical Oncology,Consultant,20,Full-time
+C0199,Dr Pauline Wilson,Female,D011,Gastroenterology,Gastroenterology,Registrar,23,Full-time
+C0200,Dr Hugh O'Connor,Male,D004,Maternity,Obstetrics and Gynaecology,Consultant,11,Full-time
+C0201,Dr Roger White,Male,D005,Paediatrics,Paediatrics,Consultant,27,Full-time
+C0202,Dr Joshua Morgan,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,23,Part-time
+C0203,Dr Bradley Parsons,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,3,Full-time
+C0204,Dr Kathryn Matthews,Female,D006,Oncology,Clinical Oncology,Consultant,33,Full-time
+C0205,Dr Sara Fry,Female,D005,Paediatrics,Paediatrics,Consultant,8,Full-time
+C0206,Dr Stephen Clark,Male,D002,Cardiology,Cardiology,Registrar,10,Full-time
+C0207,Dr Danielle Carpenter,Female,D005,Paediatrics,Paediatrics,Consultant,12,Part-time
+C0208,Dr Wayne Thomas,Male,D002,Cardiology,Cardiology,Consultant,17,Locum
+C0209,Dr Joel Williams,Male,D010,Renal Medicine,Renal Medicine,Consultant,17,Full-time
+C0210,Dr Sally Williams,Female,D016,Pathology,Pathology,Consultant,30,Full-time
+C0211,Dr Conor Clark,Male,D010,Renal Medicine,Renal Medicine,Consultant,28,Locum
+C0212,Dr Carly Bates,Female,D007,Neurology,Neurology,Registrar,5,Full-time
+C0213,Dr Gemma Walters,Female,D012,Dermatology,Dermatology,Specialty Doctor,35,Part-time
+C0214,Dr Susan Reynolds,Female,D010,Renal Medicine,Renal Medicine,Registrar,19,Full-time
+C0215,Dr Max Holmes,Male,D005,Paediatrics,Paediatrics,Consultant,16,Part-time
+C0216,Dr Hollie Chapman,Female,D012,Dermatology,Dermatology,Consultant,27,Full-time
+C0217,Dr Robin Rees,Male,D008,General Surgery,General Surgery,Nurse Consultant,25,Full-time
+C0218,Dr Charlene Wall,Female,D011,Gastroenterology,Gastroenterology,Registrar,23,Part-time
+C0219,Dr Dorothy Sinclair,Female,D005,Paediatrics,Paediatrics,Consultant,32,Full-time
+C0220,Dr Benjamin Peters,Male,D005,Paediatrics,Paediatrics,Consultant,2,Part-time
+C0221,Dr Kieran O'Sullivan,Male,D001,Accident & Emergency,Emergency Medicine,Consultant,11,Full-time
+C0222,Dr Charlene Miles,Female,D014,Mental Health Liaison,Psychiatry,Registrar,17,Full-time
+C0223,Dr Nicole Harrison,Female,D002,Cardiology,Cardiology,Consultant,31,Full-time
+C0224,Dr Julia Clarke,Female,D016,Pathology,Pathology,Specialty Doctor,17,Full-time
+C0225,Dr Rhys King,Male,D010,Renal Medicine,Renal Medicine,Consultant,24,Full-time
+C0226,Dr Janice Davies,Female,D014,Mental Health Liaison,Psychiatry,Specialty Doctor,7,Full-time
+C0227,Dr Angela Richards,Female,D012,Dermatology,Dermatology,Nurse Consultant,34,Part-time
+C0228,Dr Derek Stevenson,Male,D001,Accident & Emergency,Emergency Medicine,Registrar,4,Full-time
+C0229,Dr David Rogers,Male,D012,Dermatology,Dermatology,Specialty Doctor,24,Part-time
+C0230,Dr Kelly Sykes,Female,D012,Dermatology,Dermatology,Specialty Doctor,8,Part-time
+C0231,Dr Leah Jenkins,Female,D011,Gastroenterology,Gastroenterology,Consultant,23,Part-time
+C0232,Dr Shaun Hall,Male,D006,Oncology,Clinical Oncology,Nurse Consultant,32,Full-time
+C0233,Dr Melissa Davies,Female,D005,Paediatrics,Paediatrics,Specialty Doctor,31,Full-time
+C0234,Dr Kathryn Jones,Female,D007,Neurology,Neurology,Registrar,4,Full-time
+C0235,Dr Graham Slater,Male,D010,Renal Medicine,Renal Medicine,Nurse Consultant,32,Full-time
+C0236,Dr Patrick Lewis,Male,D007,Neurology,Neurology,Consultant,5,Part-time
+C0237,Dr Elliott Bibi,Male,D011,Gastroenterology,Gastroenterology,Consultant,25,Full-time
+C0238,Dr Jordan Summers,Male,D013,Ophthalmology,Ophthalmology,Registrar,26,Full-time
+C0239,Dr Terence Davies,Male,D006,Oncology,Clinical Oncology,Specialty Doctor,25,Locum
+C0240,Dr Jade Forster,Female,D009,Respiratory Medicine,Respiratory Medicine,Specialty Doctor,7,Full-time
+C0241,Dr Liam Jennings,Male,D006,Oncology,Clinical Oncology,Consultant,7,Full-time
+C0242,Dr Adrian Robinson,Male,D010,Renal Medicine,Renal Medicine,Consultant,29,Full-time
+C0243,Dr Stewart Baker,Male,D015,Radiology,Radiology,Consultant,24,Full-time
+C0244,Dr Alan Murphy,Male,D014,Mental Health Liaison,Psychiatry,Specialty Doctor,5,Full-time
+C0245,Dr Guy Allen,Male,D013,Ophthalmology,Ophthalmology,Consultant,12,Locum
+C0246,Dr Damien Cooper,Male,D005,Paediatrics,Paediatrics,Consultant,6,Full-time
+C0247,Dr Marc Smith,Male,D012,Dermatology,Dermatology,Consultant,4,Full-time
+C0248,Dr Toby Holmes,Male,D015,Radiology,Radiology,Consultant,6,Full-time
+C0249,Dr Alexander Marsh,Male,D012,Dermatology,Dermatology,Consultant,19,Full-time
+C0250,Dr Natalie Jarvis,Female,D004,Maternity,Obstetrics and Gynaecology,Specialty Doctor,33,Full-time
+C0251,Dr Damien Weston,Male,D004,Maternity,Obstetrics and Gynaecology,Registrar,30,Full-time
+C0252,Dr Peter Bevan,Male,D010,Renal Medicine,Renal Medicine,Consultant,10,Part-time
+C0253,Dr Helen Murphy,Female,D015,Radiology,Radiology,Registrar,30,Locum
+C0254,Dr Dale King,Male,D011,Gastroenterology,Gastroenterology,Specialty Doctor,20,Part-time
+C0255,Dr Heather Wright,Female,D006,Oncology,Clinical Oncology,Registrar,34,Full-time
+C0256,Dr Melissa Osborne,Female,D007,Neurology,Neurology,Consultant,33,Full-time
+C0257,Dr Howard Pugh,Male,D012,Dermatology,Dermatology,Registrar,10,Full-time
+C0258,Dr Harriet Williams,Female,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,32,Full-time
+C0259,Dr Tracy Reid,Female,D014,Mental Health Liaison,Psychiatry,Consultant,22,Full-time
+C0260,Dr Frank Power,Male,D015,Radiology,Radiology,Specialty Doctor,24,Full-time
+C0261,Dr Catherine Gray,Female,D006,Oncology,Clinical Oncology,Consultant,5,Part-time
+C0262,Dr Ashley Miller,Male,D005,Paediatrics,Paediatrics,Consultant,22,Locum
+C0263,Dr Elliot Jones,Male,D008,General Surgery,General Surgery,Registrar,35,Part-time
+C0264,Dr Trevor Robertson,Male,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,19,Full-time
+C0265,Dr Lisa Edwards,Female,D010,Renal Medicine,Renal Medicine,Consultant,12,Full-time
+C0266,Dr Elaine Dixon,Female,D005,Paediatrics,Paediatrics,Specialty Doctor,23,Part-time
+C0267,Dr Katherine Lawrence,Female,D002,Cardiology,Cardiology,Consultant,18,Full-time
+C0268,Dr Hannah Khan,Female,D014,Mental Health Liaison,Psychiatry,Consultant,20,Full-time
+C0269,Dr Connor Cooper,Male,D010,Renal Medicine,Renal Medicine,Consultant,27,Full-time
+C0270,Dr Ann Cole,Female,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,28,Full-time
+C0271,Dr Ryan Allan,Male,D007,Neurology,Neurology,Specialty Doctor,22,Part-time
+C0272,Dr Roger Freeman,Male,D011,Gastroenterology,Gastroenterology,Nurse Consultant,10,Part-time
+C0273,Dr Gavin Farmer,Male,D004,Maternity,Obstetrics and Gynaecology,Consultant,9,Full-time
+C0274,Dr Anna McCarthy,Female,D008,General Surgery,General Surgery,Consultant,20,Locum
+C0275,Dr Eileen Harding,Female,D014,Mental Health Liaison,Psychiatry,Nurse Consultant,12,Part-time
+C0276,Dr Claire Baxter,Female,D011,Gastroenterology,Gastroenterology,Registrar,33,Locum
+C0277,Dr Gerard Palmer,Male,D015,Radiology,Radiology,Registrar,33,Full-time
+C0278,Dr Paul Hewitt,Male,D013,Ophthalmology,Ophthalmology,Nurse Consultant,15,Full-time
+C0279,Dr Leanne Mitchell,Female,D002,Cardiology,Cardiology,Consultant,32,Full-time
+C0280,Dr Anna Powell,Female,D001,Accident & Emergency,Emergency Medicine,Consultant,18,Part-time
+C0281,Dr Abdul Roberts,Male,D013,Ophthalmology,Ophthalmology,Consultant,5,Full-time
+C0282,Dr Jamie Jones,Male,D007,Neurology,Neurology,Consultant,6,Full-time
+C0283,Dr Barry Williams,Male,D015,Radiology,Radiology,Registrar,9,Full-time
+C0284,Dr Stephen McCarthy,Male,D004,Maternity,Obstetrics and Gynaecology,Consultant,23,Full-time
+C0285,Dr Hollie Davies,Female,D012,Dermatology,Dermatology,Consultant,34,Full-time
+C0286,Dr Nicole Wood,Female,D002,Cardiology,Cardiology,Consultant,23,Part-time
+C0287,Dr Joan Bell,Female,D015,Radiology,Radiology,Specialty Doctor,34,Full-time
+C0288,Dr Dorothy Wilkinson,Female,D011,Gastroenterology,Gastroenterology,Consultant,21,Full-time
+C0289,Dr Dominic Wright,Male,D016,Pathology,Pathology,Consultant,3,Full-time
+C0290,Dr Mohamed Payne,Male,D004,Maternity,Obstetrics and Gynaecology,Specialty Doctor,3,Full-time
+C0291,Dr Sian Rowe,Female,D009,Respiratory Medicine,Respiratory Medicine,Specialty Doctor,32,Full-time
+C0292,Dr Kate Clayton,Female,D013,Ophthalmology,Ophthalmology,Registrar,17,Full-time
+C0293,Dr Danielle Lamb,Female,D004,Maternity,Obstetrics and Gynaecology,Consultant,22,Full-time
+C0294,Dr Bethany Murphy,Female,D014,Mental Health Liaison,Psychiatry,Consultant,32,Part-time
+C0295,Dr Judith Carter,Female,D002,Cardiology,Cardiology,Consultant,22,Locum
+C0296,Dr Karl White,Male,D016,Pathology,Pathology,Consultant,13,Full-time
+C0297,Dr Rhys Smith,Male,D011,Gastroenterology,Gastroenterology,Specialty Doctor,18,Full-time
+C0298,Dr Hannah Jones,Female,D007,Neurology,Neurology,Consultant,21,Full-time
+C0299,Dr Mathew Barnett,Male,D010,Renal Medicine,Renal Medicine,Specialty Doctor,33,Full-time
+C0300,Dr Clive Wilson,Male,D012,Dermatology,Dermatology,Consultant,26,Part-time
+C0301,Dr Joshua Porter,Male,D013,Ophthalmology,Ophthalmology,Nurse Consultant,11,Full-time
+C0302,Dr Gail Thomas,Female,D010,Renal Medicine,Renal Medicine,Consultant,30,Full-time
+C0303,Dr Lauren Wells,Female,D016,Pathology,Pathology,Consultant,19,Locum
+C0304,Dr Caroline Bryant,Female,D009,Respiratory Medicine,Respiratory Medicine,Consultant,17,Full-time
+C0305,Dr Dorothy Wyatt,Female,D008,General Surgery,General Surgery,Consultant,28,Full-time
+C0306,Dr Samantha Jones,Female,D016,Pathology,Pathology,Specialty Doctor,10,Full-time
+C0307,Dr Kevin Moore,Male,D006,Oncology,Clinical Oncology,Specialty Doctor,32,Full-time
+C0308,Dr Raymond Hall,Male,D007,Neurology,Neurology,Consultant,5,Part-time
+C0309,Dr Pamela Perkins,Female,D003,Orthopaedics,Trauma and Orthopaedics,Consultant,4,Part-time
+C0310,Dr Jake Butler,Male,D006,Oncology,Clinical Oncology,Registrar,13,Locum
+C0311,Dr Kevin Hobbs,Male,D002,Cardiology,Cardiology,Registrar,13,Locum
+C0312,Dr Amanda Arnold,Female,D010,Renal Medicine,Renal Medicine,Consultant,8,Locum
+C0313,Dr Alexander Whitehead,Male,D011,Gastroenterology,Gastroenterology,Consultant,35,Full-time
+C0314,Dr Dean Allen,Male,D005,Paediatrics,Paediatrics,Consultant,9,Full-time
+C0315,Dr Roy Frost,Male,D015,Radiology,Radiology,Specialty Doctor,2,Part-time
+C0316,Dr Sandra Wallis,Female,D010,Renal Medicine,Renal Medicine,Consultant,27,Part-time
+C0317,Dr Beth Burke,Female,D011,Gastroenterology,Gastroenterology,Consultant,8,Full-time
+C0318,Dr Adrian Warner,Male,D005,Paediatrics,Paediatrics,Consultant,17,Full-time
+C0319,Dr Kathleen Baker,Female,D013,Ophthalmology,Ophthalmology,Consultant,19,Locum
+C0320,Dr Abbie Nelson,Female,D010,Renal Medicine,Renal Medicine,Consultant,25,Full-time
+C0321,Dr Kim Gill,Female,D002,Cardiology,Cardiology,Consultant,12,Full-time
+C0322,Dr Debra Kent,Female,D010,Renal Medicine,Renal Medicine,Specialty Doctor,20,Full-time
+C0323,Dr Joyce Middleton,Female,D008,General Surgery,General Surgery,Nurse Consultant,32,Full-time
+C0324,Dr Howard Miah,Male,D012,Dermatology,Dermatology,Specialty Doctor,32,Part-time
+C0325,Dr Linda Baker,Female,D007,Neurology,Neurology,Specialty Doctor,7,Full-time
+C0326,Dr Grace Webb,Female,D012,Dermatology,Dermatology,Registrar,9,Full-time
+C0327,Dr Paula Woods,Female,D007,Neurology,Neurology,Consultant,35,Full-time
+C0328,Dr Bernard Goddard,Male,D007,Neurology,Neurology,Consultant,34,Full-time
+C0329,Dr Charlie Noble,Male,D002,Cardiology,Cardiology,Consultant,28,Full-time
+C0330,Dr Elliot Arnold,Male,D002,Cardiology,Cardiology,Specialty Doctor,21,Part-time
+C0331,Dr Barry Richards,Male,D013,Ophthalmology,Ophthalmology,Registrar,15,Full-time
+C0332,Dr Max Russell,Male,D002,Cardiology,Cardiology,Consultant,6,Full-time
+C0333,Dr Joan Williams,Female,D002,Cardiology,Cardiology,Nurse Consultant,32,Full-time
+C0334,Dr Naomi Phillips,Female,D014,Mental Health Liaison,Psychiatry,Registrar,28,Full-time
+C0335,Dr Adrian Holden,Male,D013,Ophthalmology,Ophthalmology,Registrar,26,Full-time
+C0336,Dr Samuel White,Male,D005,Paediatrics,Paediatrics,Consultant,27,Full-time
+C0337,Dr Kimberley Smith,Female,D008,General Surgery,General Surgery,Registrar,21,Full-time
+C0338,Dr Dale Pearce,Male,D014,Mental Health Liaison,Psychiatry,Registrar,17,Full-time
+C0339,Dr Albert Lamb,Male,D005,Paediatrics,Paediatrics,Consultant,9,Full-time
+C0340,Dr Lauren Hughes,Female,D014,Mental Health Liaison,Psychiatry,Consultant,6,Full-time
+C0341,Dr Ben Clayton,Male,D002,Cardiology,Cardiology,Specialty Doctor,5,Full-time
+C0342,Dr Kenneth Evans,Male,D002,Cardiology,Cardiology,Consultant,15,Part-time
+C0343,Dr Danielle Cook,Female,D002,Cardiology,Cardiology,Consultant,20,Full-time
+C0344,Dr Joel Harrison,Male,D011,Gastroenterology,Gastroenterology,Consultant,11,Locum
+C0345,Dr Ashley Humphreys,Male,D008,General Surgery,General Surgery,Consultant,5,Full-time
+C0346,Dr Garry Wells,Male,D006,Oncology,Clinical Oncology,Consultant,5,Locum
+C0347,Dr Luke Smith,Male,D013,Ophthalmology,Ophthalmology,Specialty Doctor,28,Full-time
+C0348,Dr Yvonne Jones,Female,D013,Ophthalmology,Ophthalmology,Registrar,32,Full-time
+C0349,Dr Trevor Marshall,Male,D008,General Surgery,General Surgery,Registrar,11,Part-time
+C0350,Dr Brandon Ellis,Male,D002,Cardiology,Cardiology,Nurse Consultant,35,Full-time
+C0351,Dr Francis James,Male,D008,General Surgery,General Surgery,Consultant,7,Locum
+C0352,Dr Joanne Harris,Female,D012,Dermatology,Dermatology,Consultant,14,Full-time
+C0353,Dr Nicole Marshall,Female,D013,Ophthalmology,Ophthalmology,Registrar,14,Part-time
+C0354,Dr Carl Adams,Male,D007,Neurology,Neurology,Consultant,23,Full-time
+C0355,Dr Sheila Jones,Female,D001,Accident & Emergency,Emergency Medicine,Registrar,9,Part-time
+C0356,Dr Jasmine Ward,Female,D016,Pathology,Pathology,Specialty Doctor,15,Full-time
+C0357,Dr Henry Butcher,Male,D008,General Surgery,General Surgery,Registrar,26,Full-time
+C0358,Dr Bruce Price,Male,D012,Dermatology,Dermatology,Consultant,34,Part-time
+C0359,Dr Natasha Smith,Female,D015,Radiology,Radiology,Registrar,32,Part-time
+C0360,Dr Elizabeth Atkinson,Female,D011,Gastroenterology,Gastroenterology,Consultant,28,Full-time

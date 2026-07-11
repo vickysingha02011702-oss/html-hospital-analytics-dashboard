@@ -1,0 +1,31 @@
+DiagnosisID,ICD10Code,DiagnosisDescription,DiagnosisCategory,SeverityBand
+DX001,I20,Angina pectoris,Cardiovascular,Medium
+DX002,I21,Acute myocardial infarction,Cardiovascular,High
+DX003,I10,Essential hypertension,Cardiovascular,Low
+DX004,J18,Pneumonia,Respiratory,High
+DX005,J45,Asthma,Respiratory,Medium
+DX006,J44,Chronic obstructive pulmonary disease,Respiratory,High
+DX007,S72,Fracture of femur,Trauma & Injury,High
+DX008,S52,Fracture of forearm,Trauma & Injury,Medium
+DX009,M54,Back pain,Musculoskeletal,Low
+DX010,M16,Coxarthrosis hip osteoarthritis,Musculoskeletal,Medium
+DX011,N18,Chronic kidney disease,Renal,High
+DX012,N39,Urinary tract infection,Renal,Medium
+DX013,K35,Acute appendicitis,Gastrointestinal,Medium
+DX014,K80,Gallstones,Gastrointestinal,Medium
+DX015,E11,Type 2 diabetes mellitus,Endocrine,Medium
+DX016,E03,Hypothyroidism,Endocrine,Low
+DX017,C50,Breast cancer,Oncology,High
+DX018,C34,Lung cancer,Oncology,High
+DX019,G40,Epilepsy,Neurology,Medium
+DX020,G45,Transient cerebral ischaemic attacks,Neurology,High
+DX021,O80,Single spontaneous delivery,Maternity,Low
+DX022,O82,Caesarean delivery,Maternity,Medium
+DX023,A09,Gastroenteritis and colitis,Infectious Disease,Low
+DX024,B34,"Viral infection, unspecified",Infectious Disease,Low
+DX025,F32,Depressive episode,Mental Health,Medium
+DX026,F41,Anxiety disorders,Mental Health,Low
+DX027,H25,Age-related cataract,Ophthalmology,Low
+DX028,L30,Dermatitis,Dermatology,Low
+DX029,R07,Chest pain,Symptoms & Signs,Medium
+DX030,R10,Abdominal and pelvic pain,Symptoms & Signs,Medium

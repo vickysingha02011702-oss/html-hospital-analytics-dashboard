@@ -1,0 +1,7 @@
+PayerID,PayerType,FundingGroup,FundingDescription,ApproxShare
+P001,NHS,Public Funding,NHS England/UK Devolved Nation,0.82
+P002,Private Medical Insurance,Private,Employer or individual insurer,0.1
+P003,Self Pay,Private,Patient funded,0.04
+P004,Overseas Visitor,Cross Border,Non-UK visitor chargeable care,0.02
+P005,Clinical Trial,Research,Study funded care,0.01
+P006,Charity / Grant,Charity,Supported care arrangement,0.01
