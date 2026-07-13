@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#0A0E13;
@@ -97,6 +98,7 @@ button{font-family:inherit;cursor:pointer;}
 }
 .nav-item:hover{background:var(--surface-2);color:var(--text);}
 .nav-item.active{background:var(--accent-soft);color:var(--accent);}
+.nav-item.disabled{opacity:.42;}
 .nav-item .dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);flex-shrink:0;}
 .nav-item.active .dot{background:var(--accent);}
 .nav-icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:currentColor;opacity:.85;}
@@ -134,8 +136,11 @@ button{font-family:inherit;cursor:pointer;}
   display:flex;align-items:center;gap:7px;transition:all .15s ease;
 }
 .btn:hover{background:var(--surface-3);border-color:#2C3742;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn:disabled:hover{background:var(--surface-2);border-color:var(--border);}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#08131F;}
 .btn.primary:hover{background:#5199E2;}
+.btn.danger{color:var(--red);}
 
 .content{flex:1;overflow-y:auto;padding:28px 30px 60px;}
 .page{display:none;animation:fadeIn .35s ease;}
@@ -207,6 +212,9 @@ button{font-family:inherit;cursor:pointer;}
 .upload-copy p{font-size:12.5px;color:var(--text-muted);}
 .upload-status{font-size:12px;color:var(--text-muted);width:100%;}
 .upload-status.error{color:var(--red);}
+.workspace-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.placeholder-panel{text-align:center;padding:44px 24px;}
+.placeholder-panel p{color:var(--text-muted);max-width:620px;margin:8px auto 0;}
 .dataset-card{
   background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius-lg);
   padding:16px 17px;display:flex;flex-direction:column;gap:10px;
@@ -435,9 +443,40 @@ table.data-table tr:hover td{background:var(--surface-2);color:var(--text);}
 <script>
 const rawAppData = document.getElementById('app-data').textContent.replace(/\bNaN\b/g, 'null');
 const DATA = JSON.parse(rawAppData);
-const uploadedDatasets = [];
+const APP_STATES = { DEMO:'DEMO', USER_PROJECT:'USER_PROJECT', EMPTY:'EMPTY' };
+let uploadedDatasets = [];
 let uploadStatusMessage = '';
 let uploadStatusIsError = false;
+
+const DatasetRegistry = {
+  datasets: [],
+  load(datasets){ this.datasets = datasets; },
+  clear(){ this.datasets = []; },
+  remove(name){ this.datasets = this.datasets.filter(ds=>ds.name!==name); },
+  list(){ return this.datasets; }
+};
+
+const ProjectManager = {
+  state: APP_STATES.DEMO,
+  currentPage: 'exec',
+  activeProject: { name:'Meridian Health Demo', type:APP_STATES.DEMO },
+  loadDemo(){
+    this.state = APP_STATES.DEMO;
+    this.activeProject = { name:'Meridian Health Demo', type:APP_STATES.DEMO };
+    DatasetRegistry.load(DATA.datasetProfiles.map(profile=>Object.assign({ demo:true }, profile)));
+  },
+  loadUserProject(datasets){
+    this.state = APP_STATES.USER_PROJECT;
+    this.activeProject = { name:'Uploaded Project', type:APP_STATES.USER_PROJECT };
+    DatasetRegistry.load(datasets);
+  },
+  clearProject(){
+    this.state = APP_STATES.EMPTY;
+    this.activeProject = null;
+    DatasetRegistry.clear();
+  }
+};
+ProjectManager.loadDemo();
 
 // ---------- formatting helpers ----------
 function fmtNum(n, d=0){ if(n===null||n===undefined||isNaN(n)) return '—'; return Number(n).toLocaleString('en-GB',{minimumFractionDigits:d,maximumFractionDigits:d}); }
@@ -453,6 +492,125 @@ function monthLabel(ym){
   const [y,m] = ym.split('-');
   const names=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return names[parseInt(m,10)-1]+' '+y.slice(2);
+}
+
+function fileTypeFromName(name){
+  return name.split('.').pop().toLowerCase();
+}
+
+function inferKind(name){
+  if(/^fact_/i.test(name)) return 'Fact';
+  if(/^dim_/i.test(name)) return 'Dimension';
+  return 'Uploaded';
+}
+
+function jsString(value){
+  return String(value).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
+function readFileAsText(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(file);
+  });
+}
+
+function readFileAsArrayBuffer(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], cell = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    const next = text[i+1];
+    if(ch === '"'){
+      if(inQuotes && next === '"'){ cell += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if(ch === ',' && !inQuotes){
+      row.push(cell); cell = '';
+    } else if((ch === '\n' || ch === '\r') && !inQuotes){
+      if(ch === '\r' && next === '\n') i++;
+      row.push(cell); cell = '';
+      if(row.some(v=>v.trim()!=='')) rows.push(row);
+      row = [];
+    } else {
+      cell += ch;
+    }
+  }
+  row.push(cell);
+  if(row.some(v=>v.trim()!=='')) rows.push(row);
+  if(rows.length===0) return [];
+  const headers = rows[0].map((h,i)=>h.trim() || `Column_${i+1}`);
+  return rows.slice(1).map(values=>{
+    const record = {};
+    headers.forEach((header,i)=>{ record[header] = values[i] !== undefined ? values[i] : ''; });
+    return record;
+  });
+}
+
+function inferSchema(data){
+  const columns = data.length ? Object.keys(data[0]) : [];
+  return columns.map(name=>{
+    const values = data.map(row=>row[name]).filter(v=>v!==null && v!==undefined && String(v).trim()!=='');
+    const missing = data.length - values.length;
+    let type = 'text';
+    if(values.length && values.every(v=>!isNaN(Number(v)))) type = 'number';
+    else if(values.length && values.every(v=>!isNaN(Date.parse(v)))) type = 'date';
+    else if(values.length && values.every(v=>/^(true|false|yes|no)$/i.test(String(v)))) type = 'boolean';
+    return { name, type, missing };
+  });
+}
+
+function buildDatasetProfile(file, data){
+  const name = fileNameWithoutExtension(file.name);
+  const schema = inferSchema(data);
+  const missing = schema.reduce((total,col)=>total+col.missing,0);
+  const duplicateRows = data.length - new Set(data.map(row=>JSON.stringify(row))).size;
+  const totalCells = Math.max(data.length * Math.max(schema.length,1), 1);
+  const qualityScore = Math.max(0, Math.round((1 - (missing + duplicateRows) / totalCells) * 1000) / 10);
+  return {
+    name,
+    file: file.name,
+    fileType: fileTypeFromName(file.name),
+    kind: inferKind(name),
+    rows: data.length,
+    columns: schema.length,
+    memoryKB: file.size / 1024,
+    missing,
+    duplicates: duplicateRows,
+    qualityScore,
+    columnList: schema.map(col=>({ name:col.name, dtype:col.type })),
+    inferredSchema: schema,
+    parsedData: data,
+    preview: data.slice(0,5),
+    loaded: true,
+    lastModifiedLabel: file.lastModified ? new Date(file.lastModified).toLocaleDateString('en-GB') : 'Loaded'
+  };
+}
+
+async function parseDatasetFile(file){
+  const type = fileTypeFromName(file.name);
+  if(type === 'csv'){
+    const text = await readFileAsText(file);
+    return buildDatasetProfile(file, parseCSV(text));
+  }
+  if(type === 'xlsx' || type === 'xls'){
+    if(!window.XLSX) throw new Error('Excel parser failed to load.');
+    const buffer = await readFileAsArrayBuffer(file);
+    const workbook = XLSX.read(buffer, { type:'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    return buildDatasetProfile(file, XLSX.utils.sheet_to_json(sheet, { defval:'' }));
+  }
+  throw new Error(`${file.name} is not a supported dataset type.`);
 }
 
 // ---------- chart theme ----------
@@ -850,7 +1008,7 @@ function openPreview(datasetName){
   document.getElementById('modalTitle').textContent = ds.file + ' — preview (first 5 rows)';
   const cols = ds.columnList.map(c=>c.name);
   if(cols.length===0){
-    document.getElementById('modalBody').innerHTML = '<p style="color:var(--text-muted);">Preview will be available after CSV/Excel parsing is implemented.</p>';
+    document.getElementById('modalBody').innerHTML = '<p style="color:var(--text-muted);">Load Data to parse this dataset and enable preview.</p>';
     modalOverlay.classList.add('open');
     return;
   }
@@ -863,7 +1021,8 @@ function openPreview(datasetName){
   modalOverlay.classList.add('open');
 }
 function getWorkspaceProfiles(){
-  return DATA.datasetProfiles.concat(uploadedDatasets);
+  if(ProjectManager.state === APP_STATES.EMPTY) return uploadedDatasets;
+  return DatasetRegistry.list().concat(uploadedDatasets);
 }
 function isSupportedUpload(file){
   return /\.(csv|xlsx|xls)$/i.test(file.name);
@@ -873,13 +1032,11 @@ function fileNameWithoutExtension(name){
 }
 function uploadedProfileFromFile(file){
   const name = fileNameWithoutExtension(file.name);
-  let kind = 'Uploaded';
-  if(/^fact_/i.test(name)) kind = 'Fact';
-  if(/^dim_/i.test(name)) kind = 'Dimension';
   return {
     name,
     file: file.name,
-    kind,
+    fileType: fileTypeFromName(file.name),
+    kind: inferKind(name),
     rows: null,
     columns: null,
     memoryKB: file.size / 1024,
@@ -889,6 +1046,7 @@ function uploadedProfileFromFile(file){
     columnList: [],
     preview: [],
     uploaded: true,
+    sourceFile: file,
     lastModifiedLabel: file.lastModified ? new Date(file.lastModified).toLocaleDateString('en-GB') : 'Selected'
   };
 }
@@ -915,6 +1073,65 @@ function handleUploadFiles(fileList){
   uploadStatusIsError = false;
   renderWorkspace();
 }
+
+async function loadUploadedData(){
+  if(uploadedDatasets.length===0){
+    uploadStatusMessage = 'Upload one or more CSV or Excel files before loading data.';
+    uploadStatusIsError = true;
+    renderWorkspace();
+    return;
+  }
+  uploadStatusMessage = 'Loading uploaded datasets...';
+  uploadStatusIsError = false;
+  renderWorkspace();
+  try{
+    const loaded = [];
+    for(const staged of uploadedDatasets){
+      loaded.push(await parseDatasetFile(staged.sourceFile));
+    }
+    uploadedDatasets = [];
+    ProjectManager.loadUserProject(loaded);
+    ProjectManager.currentPage = 'workspace';
+    uploadStatusMessage = `${loaded.length} dataset${loaded.length===1?'':'s'} loaded as the active project.`;
+    renderWorkspace();
+    updateAppShell();
+  } catch(err){
+    uploadStatusMessage = err.message || 'Unable to load uploaded datasets.';
+    uploadStatusIsError = true;
+    renderWorkspace();
+  }
+}
+
+function removeDataset(name){
+  uploadedDatasets = uploadedDatasets.filter(ds=>ds.name!==name);
+  if(ProjectManager.state === APP_STATES.USER_PROJECT){
+    DatasetRegistry.remove(name);
+    if(DatasetRegistry.list().length===0) ProjectManager.clearProject();
+  }
+  uploadStatusMessage = `${name} removed.`;
+  uploadStatusIsError = false;
+  renderWorkspace();
+  updateAppShell();
+}
+
+function clearProject(){
+  uploadedDatasets = [];
+  uploadStatusMessage = 'Project cleared. Upload datasets or load the demo project.';
+  uploadStatusIsError = false;
+  ProjectManager.clearProject();
+  ProjectManager.currentPage = 'workspace';
+  goToPage('workspace');
+}
+
+function loadDemoProject(){
+  uploadedDatasets = [];
+  uploadStatusMessage = 'Demo project restored.';
+  uploadStatusIsError = false;
+  ProjectManager.loadDemo();
+  ProjectManager.currentPage = 'workspace';
+  goToPage('workspace');
+}
+
 function bindUploadEvents(){
   const uploadZone = document.getElementById('uploadZone');
   const fileInput = document.getElementById('fileInput');
@@ -953,21 +1170,42 @@ function buildConstellationSVG(){
   return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${edges}${nodeEls}</svg>`;
 }
 
+function renderWorkspaceStatePanel(profiles){
+  if(ProjectManager.state === APP_STATES.DEMO) return '';
+  if(ProjectManager.state === APP_STATES.USER_PROJECT){
+    return `<div class="panel">
+      <h3>Loaded Dataset Registry</h3>
+      <div class="ai-rec good">
+        <div class="rec-icon">✓</div>
+        <div class="rec-text"><b>User project active.</b> ${profiles.length} dataset${profiles.length===1?'':'s'} parsed and stored in the Dataset Registry. Dashboard and documentation generation are intentionally reserved for a later phase.</div>
+      </div>
+    </div>`;
+  }
+  return `<div class="panel placeholder-panel">
+    <h3>No Active Project</h3>
+    <p>Upload CSV or Excel datasets and click Load Data, or restore the bundled demo project.</p>
+  </div>`;
+}
+
 function renderWorkspace(){
   const profiles = getWorkspaceProfiles();
   const profiledDatasets = profiles.filter(p=>p.qualityScore!==null);
-  const avgQuality = (profiledDatasets.reduce((a,p)=>a+p.qualityScore,0)/profiledDatasets.length).toFixed(1);
+  const avgQuality = profiledDatasets.length ? (profiledDatasets.reduce((a,p)=>a+p.qualityScore,0)/profiledDatasets.length).toFixed(1) : '—';
   const totalRows = profiles.reduce((a,p)=>a+(p.rows||0),0);
   const totalMissing = profiles.reduce((a,p)=>a+(p.missing||0),0);
   const totalDupes = profiles.reduce((a,p)=>a+(p.duplicates||0),0);
-  const factTable = profiles.find(p=>p.kind==='Fact');
+  const factTable = profiles.find(p=>p.kind==='Fact') || { name:'No fact table', rows:0 };
   const dimCount = profiles.filter(p=>p.kind==='Dimension').length;
+  const isDemo = ProjectManager.state === APP_STATES.DEMO;
+  const workspaceDescription = isDemo
+    ? `${profiles.length} files profiled on load. Every relationship below was validated against the actual foreign keys in the data.`
+    : `${profiles.length} dataset${profiles.length===1?'':'s'} currently visible in the workspace.`;
 
   const html = `
     <div class="page-head">
       <div class="eyebrow">Data Workspace</div>
       <h2>Uploaded Datasets</h2>
-      <p>${profiles.length} files profiled on load. Every relationship below was validated against the actual foreign keys in the data — zero orphaned records found across ${dimCount} dimension joins.</p>
+      <p>${workspaceDescription}</p>
     </div>
 
     <div class="upload-zone" id="uploadZone">
@@ -976,7 +1214,12 @@ function renderWorkspace(){
         <p>Drag CSV or Excel files here, or choose files from your computer.</p>
       </div>
       <input id="fileInput" type="file" accept=".csv,.xlsx,.xls" multiple hidden>
-      <button class="btn primary" type="button" onclick="document.getElementById('fileInput').click()">Choose Files</button>
+      <div class="workspace-actions">
+        <button class="btn primary" type="button" onclick="document.getElementById('fileInput').click()">Choose Files</button>
+        <button class="btn" type="button" onclick="loadUploadedData()" ${uploadedDatasets.length===0 ? 'disabled' : ''}>Load Data</button>
+        <button class="btn danger" type="button" onclick="clearProject()">Clear Project</button>
+        <button class="btn" type="button" onclick="loadDemoProject()" ${ProjectManager.state===APP_STATES.DEMO && uploadedDatasets.length===0 ? 'disabled' : ''}>Load Demo</button>
+      </div>
       <div class="upload-status ${uploadStatusIsError ? 'error' : ''}" id="uploadStatus">${uploadStatusMessage}</div>
     </div>
 
@@ -988,7 +1231,9 @@ function renderWorkspace(){
       <div class="stat-chip"><div class="n">${totalMissing}</div><div class="l">Missing values (structural, see note)</div></div>
     </div>
 
-    <div class="panel">
+    ${renderWorkspaceStatePanel(profiles)}
+
+    <div class="panel" style="${isDemo ? '' : 'display:none;'}">
       <h3>Detected Data Model — Star Schema</h3>
       <div class="constellation-wrap">${buildConstellationSVG()}</div>
       <div style="font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:-8px;">
@@ -996,7 +1241,7 @@ function renderWorkspace(){
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel" style="${isDemo ? '' : 'display:none;'}">
       <h3>AI Recommendation Panel</h3>
       <div class="ai-rec good">
         <div class="rec-icon">✓</div>
@@ -1039,9 +1284,11 @@ function renderWorkspace(){
 
 function renderDatasetCard(ds){
   const qualityWidth = ds.qualityScore===null ? 0 : ds.qualityScore;
-  const qualityLabel = ds.qualityScore===null ? 'Pending parser' : `${ds.qualityScore}%`;
-  const qualityCaption = ds.uploaded ? 'Awaiting parser' : 'Data Quality Score';
+  const qualityLabel = ds.qualityScore===null ? 'Not loaded' : `${ds.qualityScore}%`;
+  const qualityCaption = ds.uploaded ? 'Ready to load' : (ProjectManager.state===APP_STATES.USER_PROJECT ? 'Loaded dataset' : 'Data Quality Score');
   const lastModified = ds.lastModifiedLabel || 'Today';
+  const canRemove = ds.uploaded || ProjectManager.state===APP_STATES.USER_PROJECT;
+  const removeButton = canRemove ? `<button class="dc-preview-btn" onclick="removeDataset('${jsString(ds.name)}')">Remove</button>` : '';
   return `<div class="dataset-card">
     <div class="dc-head">
       <span class="dc-name">${ds.name}</span>
@@ -1061,7 +1308,10 @@ function renderDatasetCard(ds){
     </div>
     <div class="dc-foot">
       <span class="modified">${qualityCaption}</span>
-      <button class="dc-preview-btn" onclick="openPreview('${ds.name}')">Preview ›</button>
+      <div style="display:flex;gap:10px;align-items:center;">
+        ${removeButton}
+        <button class="dc-preview-btn" onclick="openPreview('${jsString(ds.name)}')">Preview ›</button>
+      </div>
     </div>
   </div>`;
 }
@@ -1475,6 +1725,7 @@ function buildFullReportMarkdown(){
 }
 
 function downloadReport(){
+  if(ProjectManager.state !== APP_STATES.DEMO) return;
   const md = buildFullReportMarkdown();
   const blob = new Blob([md], {type:'text/markdown'});
   const url = URL.createObjectURL(blob);
@@ -1496,13 +1747,42 @@ const PAGE_META = {
   docs: {title:'Documentation Center', crumb:'Documentation / Documentation Center'},
 };
 
+function renderStatePlaceholder(key){
+  const isEmpty = ProjectManager.state === APP_STATES.EMPTY;
+  const title = PAGE_META[key].title;
+  const message = isEmpty
+    ? 'No active project is loaded. Use the Data Workspace to load uploaded datasets or restore the demo project.'
+    : 'This uploaded project is loaded and stored in the Dataset Registry. Dynamic dashboard and documentation generation are planned for a later phase.';
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div class="eyebrow">${isEmpty ? 'Empty Project' : 'User Project'}</div>
+      <h2>${title}</h2>
+      <p>${message}</p>
+    </div>
+    <div class="panel placeholder-panel">
+      <h3>${isEmpty ? 'No Active Project' : 'Phase 1 Project Loaded'}</h3>
+      <p>${message}</p>
+    </div>
+  `;
+}
+
+function updateAppShell(){
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.classList.toggle('disabled', ProjectManager.state===APP_STATES.EMPTY && item.dataset.page!=='workspace');
+  });
+  document.getElementById('downloadReportBtn').disabled = ProjectManager.state!==APP_STATES.DEMO;
+}
+
 function goToPage(key){
+  ProjectManager.currentPage = key;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===key));
   document.getElementById('topbarTitle').textContent = PAGE_META[key].title;
   document.getElementById('topbarCrumb').textContent = PAGE_META[key].crumb;
   if(key==='workspace') renderWorkspace();
+  else if(ProjectManager.state!==APP_STATES.DEMO) renderStatePlaceholder(key);
   else if(key==='docs') renderDocs();
   else renderDashboardPage(key);
+  updateAppShell();
   document.getElementById('content').scrollTop = 0;
   document.getElementById('sidebar').classList.remove('open');
 }
