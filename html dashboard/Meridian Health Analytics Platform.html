@@ -526,6 +526,22 @@ function readFileAsArrayBuffer(file){
   });
 }
 
+function loadScript(src){
+  return new Promise((resolve,reject)=>{
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error(`Unable to load ${src}`));
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureXLSX(){
+  if(window.XLSX) return;
+  await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+  if(!window.XLSX) throw new Error('Excel parser failed to load.');
+}
+
 function parseCSV(text){
   const rows = [];
   let row = [], cell = '', inQuotes = false;
@@ -604,7 +620,7 @@ async function parseDatasetFile(file){
     return buildDatasetProfile(file, parseCSV(text));
   }
   if(type === 'xlsx' || type === 'xls'){
-    if(!window.XLSX) throw new Error('Excel parser failed to load.');
+    await ensureXLSX();
     const buffer = await readFileAsArrayBuffer(file);
     const workbook = XLSX.read(buffer, { type:'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -1190,7 +1206,7 @@ function renderWorkspaceStatePanel(profiles){
 function renderWorkspace(){
   const profiles = getWorkspaceProfiles();
   const profiledDatasets = profiles.filter(p=>p.qualityScore!==null);
-  const avgQuality = profiledDatasets.length ? (profiledDatasets.reduce((a,p)=>a+p.qualityScore,0)/profiledDatasets.length).toFixed(1) : '—';
+  const avgQuality = profiledDatasets.length ? (profiledDatasets.reduce((a,p)=>a+p.qualityScore,0)/profiledDatasets.length).toFixed(1) : 'N/A';
   const totalRows = profiles.reduce((a,p)=>a+(p.rows||0),0);
   const totalMissing = profiles.reduce((a,p)=>a+(p.missing||0),0);
   const totalDupes = profiles.reduce((a,p)=>a+(p.duplicates||0),0);
@@ -1226,7 +1242,7 @@ function renderWorkspace(){
     <div class="stat-strip">
       <div class="stat-chip"><div class="n">${profiles.length}</div><div class="l">Datasets loaded</div></div>
       <div class="stat-chip"><div class="n">${fmtNum(totalRows)}</div><div class="l">Total rows</div></div>
-      <div class="stat-chip"><div class="n">${avgQuality}%</div><div class="l">Avg. data quality score</div></div>
+      <div class="stat-chip"><div class="n">${avgQuality}${avgQuality==='N/A' ? '' : '%'}</div><div class="l">Avg. data quality score</div></div>
       <div class="stat-chip"><div class="n">${totalDupes}</div><div class="l">Duplicate rows found</div></div>
       <div class="stat-chip"><div class="n">${totalMissing}</div><div class="l">Missing values (structural, see note)</div></div>
     </div>
@@ -1296,7 +1312,7 @@ function renderDatasetCard(ds){
     </div>
     <div class="dc-stats">
       <div class="dc-stat">Rows: <b>${fmtNum(ds.rows)}</b></div>
-      <div class="dc-stat">Columns: <b>${ds.columns ?? 'â€”'}</b></div>
+      <div class="dc-stat">Columns: <b>${ds.columns ?? 'N/A'}</b></div>
       <div class="dc-stat">Memory: <b>${ds.memoryKB>=1024 ? (ds.memoryKB/1024).toFixed(1)+' MB' : ds.memoryKB.toFixed(0)+' KB'}</b></div>
       <div class="dc-stat">Duplicates: <b>${fmtNum(ds.duplicates)}</b></div>
       <div class="dc-stat">Missing values: <b>${fmtNum(ds.missing)}</b></div>
