@@ -37,21 +37,27 @@ The format follows semantic versioning where practical.
 
 ---
 
-# v0.3.0 – Workspace (In Progress)
+# v0.3.0 – Workspace
 
-**Status:** In Progress
+**Status:** Completed
 
 ## Added
 - Dataset upload interface
 - Dataset summary cards
-- File validation groundwork
-
-## Pending
-- Load uploaded datasets
-- Remove individual datasets
+- File validation
+- CSV dataset loading
+- XLSX dataset loading
+- Dataset preview
+- Individual dataset removal
+- Dataset Registry
+- Project Manager
+- DEMO / USER_PROJECT / EMPTY state handling
 - Clear Project
 - Load Demo Project
-- Dataset preview
+
+## Fixed
+- Added fallback XLSX loader so Excel parsing remains available when the primary CDN script does not initialize.
+- Cleaned empty workspace summary placeholders.
 
 ---
 
@@ -59,10 +65,8 @@ The format follows semantic versioning where practical.
 
 ## v0.4.0 – Data Engine
 Planned:
-- CSV parser
-- XLSX parser
-- Metadata generation
 - Relationship detection
+- Data model generation
 
 ---
 
