@@ -1,4 +1,4 @@
-# CHANGELOG.md
+﻿# CHANGELOG.md
 **Project:** Universal Analytics Platform  
 **Documentation Version:** 2.0
 
@@ -8,7 +8,7 @@ The format follows semantic versioning where practical.
 
 ---
 
-# v0.1.0 – Project Foundation
+# v0.1.0 â€“ Project Foundation
 
 **Status:** Completed
 
@@ -21,7 +21,7 @@ The format follows semantic versioning where practical.
 
 ---
 
-# v0.2.0 – Core Navigation
+# v0.2.0 â€“ Core Navigation
 
 **Status:** Completed
 
@@ -37,7 +37,7 @@ The format follows semantic versioning where practical.
 
 ---
 
-# v0.3.0 – Workspace
+# v0.3.0 â€“ Workspace
 
 **Status:** Completed
 
@@ -61,17 +61,21 @@ The format follows semantic versioning where practical.
 
 ---
 
-# Planned Releases
+# v0.4.0 - Data Engine
 
-## v0.4.0 – Data Engine
-Planned:
+**Status:** Completed
+
+## Added
 - Relationship detection
 - Data model generation
 
 ---
 
-## v0.5.0 – Analytics Engine
-Planned:
+# v0.5.0 - Analytics Engine
+
+**Status:** Completed
+
+## Added
 - KPI generation
 - Statistical summaries
 - Insight generation
@@ -79,17 +83,29 @@ Planned:
 
 ---
 
-## v0.6.0 – Dashboard Engine
+# v0.6.0 - Dashboard Engine
+
+**Status:** Completed
+
+## Added
+- Dynamic dashboard generation for uploaded datasets
+- Automatic dashboard naming
+- Metadata-driven chart generation
+- Dynamic dashboard navigation
+- Responsive dashboard layouts
+
+---
+
+# Planned Releases
+
+## v0.7.0 - Filters
 Planned:
-- Dynamic dashboard generation
-- Dashboard naming
-- Dynamic charts
 - Metadata-driven filters
 - Reset filters
 
 ---
 
-## v0.7.0 – Documentation Engine
+## v0.8.0 - Documentation Engine
 Planned:
 - Executive summary
 - Relationship report
@@ -99,7 +115,7 @@ Planned:
 
 ---
 
-## v0.8.0 – User Experience
+## v0.9.0 - User Experience
 Planned:
 - Loading indicators
 - Success/error notifications
@@ -108,16 +124,15 @@ Planned:
 
 ---
 
-## v0.9.0 – Optimization
+## v0.10.0 - Optimization
 Planned:
 - Performance optimization
-- Dataset caching
 - Code cleanup
 - Final testing
 
 ---
 
-## v1.0.0 – Stable Release
+## v1.0.0 â€“ Stable Release
 Target:
 - Fully functional Universal Analytics Platform
 - Hospital Analytics demo
