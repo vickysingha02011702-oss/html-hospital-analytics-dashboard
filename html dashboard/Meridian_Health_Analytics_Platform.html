@@ -385,7 +385,7 @@ table.data-table tr:hover td{background:var(--surface-2);color:var(--text);}
       <div class="nav-item" data-page="workspace"><span class="nav-icon">▤</span>Data Workspace</div>
     </div>
 
-    <div class="nav-group">
+    <div class="nav-group" id="dashboardNavGroup">
       <div class="nav-label">Dashboard</div>
       <div class="nav-item" data-page="exec"><span class="nav-icon">◆</span>Executive Overview</div>
       <div class="nav-item" data-page="financial"><span class="nav-icon">£</span>Financial Performance</div>
@@ -447,6 +447,7 @@ const APP_STATES = { DEMO:'DEMO', USER_PROJECT:'USER_PROJECT', EMPTY:'EMPTY' };
 let uploadedDatasets = [];
 let uploadStatusMessage = '';
 let uploadStatusIsError = false;
+let userProjectAnalytics = null;
 
 const DatasetRegistry = {
   datasets: [],
@@ -463,16 +464,19 @@ const ProjectManager = {
   loadDemo(){
     this.state = APP_STATES.DEMO;
     this.activeProject = { name:'Meridian Health Demo', type:APP_STATES.DEMO };
+    userProjectAnalytics = null;
     DatasetRegistry.load(DATA.datasetProfiles.map(profile=>Object.assign({ demo:true }, profile)));
   },
   loadUserProject(datasets){
     this.state = APP_STATES.USER_PROJECT;
     this.activeProject = { name:'Uploaded Project', type:APP_STATES.USER_PROJECT };
     DatasetRegistry.load(datasets);
+    userProjectAnalytics = generateProjectAnalytics(datasets);
   },
   clearProject(){
     this.state = APP_STATES.EMPTY;
     this.activeProject = null;
+    userProjectAnalytics = null;
     DatasetRegistry.clear();
   }
 };
@@ -593,6 +597,9 @@ function buildDatasetProfile(file, data){
   const duplicateRows = data.length - new Set(data.map(row=>JSON.stringify(row))).size;
   const totalCells = Math.max(data.length * Math.max(schema.length,1), 1);
   const qualityScore = Math.max(0, Math.round((1 - (missing + duplicateRows) / totalCells) * 1000) / 10);
+  const numericColumns = schema.filter(col=>col.type==='number').map(col=>col.name);
+  const dateColumns = schema.filter(col=>col.type==='date').map(col=>col.name);
+  const categoricalColumns = schema.filter(col=>['text','boolean'].includes(col.type)).map(col=>col.name);
   return {
     name,
     file: file.name,
@@ -606,6 +613,9 @@ function buildDatasetProfile(file, data){
     qualityScore,
     columnList: schema.map(col=>({ name:col.name, dtype:col.type })),
     inferredSchema: schema,
+    numericColumns,
+    dateColumns,
+    categoricalColumns,
     parsedData: data,
     preview: data.slice(0,5),
     loaded: true,
@@ -627,6 +637,238 @@ async function parseDatasetFile(file){
     return buildDatasetProfile(file, XLSX.utils.sheet_to_json(sheet, { defval:'' }));
   }
   throw new Error(`${file.name} is not a supported dataset type.`);
+}
+
+// ---------- user project analytics engine ----------
+function cleanValue(v){
+  if(v===null || v===undefined) return '';
+  const value = String(v).trim();
+  return value.toLowerCase()==='nan' ? '' : value;
+}
+function htmlEscape(value){
+  return String(value ?? '').replace(/[&<>"']/g, ch=>({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+function normaliseName(name){
+  return String(name).toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+function titleFromName(name){
+  return String(name).replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+}
+function numericValues(ds, col){
+  return (ds.parsedData||[]).map(row=>Number(row[col])).filter(Number.isFinite);
+}
+function columnValues(ds, col){
+  return (ds.parsedData||[]).map(row=>cleanValue(row[col])).filter(Boolean);
+}
+function distinctCount(ds, col){
+  return new Set(columnValues(ds, col)).size;
+}
+function classifyDataset(ds){
+  const text = ds.columnList.map(c=>c.name).join(' ').toLowerCase();
+  const domains = [
+    ['Healthcare', ['patient','hospital','diagnosis','clinical','procedure','admission','doctor','consultant','payer']],
+    ['Sales', ['sale','sales','order','customer','product','revenue','quantity','price','invoice']],
+    ['Finance', ['account','transaction','balance','debit','credit','expense','income','budget','cost']],
+    ['HR', ['employee','salary','department','role','hire','attendance','performance','manager']],
+    ['Inventory', ['inventory','stock','sku','warehouse','supplier','reorder','item']],
+    ['Education', ['student','course','grade','class','teacher','enrollment','school']]
+  ];
+  const ranked = domains.map(([domain,words])=>({ domain, score:words.filter(word=>text.includes(word)).length }))
+    .sort((a,b)=>b.score-a.score);
+  return ranked[0].score ? ranked[0].domain : 'Generic';
+}
+function enrichDatasetProfile(ds){
+  const schema = ds.inferredSchema || (ds.columnList||[]).map(col=>({ name:col.name, type:col.dtype, missing:0 }));
+  ds.numericColumns = ds.numericColumns || schema.filter(col=>col.type==='number').map(col=>col.name);
+  ds.dateColumns = ds.dateColumns || schema.filter(col=>col.type==='date').map(col=>col.name);
+  ds.categoricalColumns = ds.categoricalColumns || schema.filter(col=>['text','boolean','str'].includes(col.type)).map(col=>col.name);
+  ds.domain = classifyDataset(ds);
+  return ds;
+}
+function candidateKeyColumns(ds){
+  return ds.columnList.map(col=>{
+    const values = columnValues(ds, col.name);
+    const distinct = new Set(values).size;
+    const uniqueRatio = values.length ? distinct / values.length : 0;
+    const idLike = /(^id$|id$|key$|code$|number$)/i.test(col.name);
+    return { name:col.name, uniqueRatio, idLike };
+  }).filter(col=>col.idLike || col.uniqueRatio>.9);
+}
+function valueOverlap(a, aCol, b, bCol){
+  const aValues = new Set(columnValues(a, aCol).slice(0, 2000));
+  const bValues = columnValues(b, bCol).slice(0, 2000);
+  if(!aValues.size || !bValues.length) return 0;
+  return bValues.filter(v=>aValues.has(v)).length / Math.min(aValues.size, bValues.length);
+}
+function detectRelationships(datasets){
+  const relationships = [];
+  for(let i=0;i<datasets.length;i++){
+    for(let j=i+1;j<datasets.length;j++){
+      const a = datasets[i], b = datasets[j];
+      candidateKeyColumns(a).forEach(aCol=>{
+        candidateKeyColumns(b).forEach(bCol=>{
+          const sameName = normaliseName(aCol.name) === normaliseName(bCol.name);
+          const similarId = normaliseName(aCol.name).replace(/id$/,'') === normaliseName(bCol.name).replace(/id$/,'');
+          if(!sameName && !similarId) return;
+          const overlap = valueOverlap(a, aCol.name, b, bCol.name);
+          if(overlap<=0) return;
+          const aPrimary = aCol.uniqueRatio >= bCol.uniqueRatio;
+          relationships.push({
+            fromDataset: aPrimary ? b.name : a.name,
+            fromColumn: aPrimary ? bCol.name : aCol.name,
+            toDataset: aPrimary ? a.name : b.name,
+            toColumn: aPrimary ? aCol.name : bCol.name,
+            confidence: Math.round(Math.min(1, overlap + (sameName ? .25 : .1)) * 100),
+            type: 'candidate'
+          });
+        });
+      });
+    }
+  }
+  const seen = new Set();
+  return relationships
+    .sort((a,b)=>b.confidence-a.confidence)
+    .filter(rel=>{
+      const key = `${rel.fromDataset}.${rel.fromColumn}->${rel.toDataset}.${rel.toColumn}`;
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+function sumValues(values){ return values.reduce((a,b)=>a+b,0); }
+function avgValues(values){ return values.length ? sumValues(values)/values.length : null; }
+function formatMetricValue(n){
+  if(n===null || n===undefined || isNaN(n)) return 'N/A';
+  const abs = Math.abs(n);
+  if(abs>=1000000) return (n/1000000).toFixed(2)+'M';
+  if(abs>=1000) return (n/1000).toFixed(1)+'K';
+  return Number.isInteger(n) ? fmtNum(n) : fmtNum(n,1);
+}
+function topCategories(ds, col, metricCol=null, limit=8){
+  const grouped = {};
+  (ds.parsedData||[]).forEach(row=>{
+    const key = cleanValue(row[col]) || 'Blank';
+    if(!grouped[key]) grouped[key] = { label:key, count:0, total:0 };
+    grouped[key].count++;
+    if(metricCol){
+      const v = Number(row[metricCol]);
+      if(Number.isFinite(v)) grouped[key].total += v;
+    }
+  });
+  return Object.values(grouped).sort((a,b)=>(metricCol ? b.total-a.total : b.count-a.count)).slice(0, limit);
+}
+function histogram(ds, col, buckets=8){
+  const values = numericValues(ds, col);
+  if(values.length<2) return [];
+  const min = Math.min(...values), max = Math.max(...values);
+  if(min===max) return [{ label:String(min), count:values.length }];
+  const size = (max-min)/buckets;
+  const bins = Array.from({length:buckets},(_,i)=>({ label:`${formatMetricValue(min+i*size)}-${formatMetricValue(min+(i+1)*size)}`, count:0 }));
+  values.forEach(v=>{ bins[Math.min(buckets-1, Math.floor((v-min)/size))].count++; });
+  return bins;
+}
+function timeline(ds, dateCol, metricCol){
+  const grouped = {};
+  (ds.parsedData||[]).forEach(row=>{
+    const date = cleanValue(row[dateCol]);
+    const value = Number(row[metricCol]);
+    if(!date || !Number.isFinite(value)) return;
+    const key = date.slice(0, 7);
+    grouped[key] = (grouped[key] || 0) + value;
+  });
+  return Object.keys(grouped).sort().slice(0, 24).map(label=>({ label, total:grouped[label] }));
+}
+function generateDatasetKPIs(ds){
+  const kpis = [
+    {label:'Rows', value:fmtNum(ds.rows), sub:'Records loaded', tone:'accent'},
+    {label:'Columns', value:fmtNum(ds.columns), sub:'Fields detected', tone:'teal'}
+  ];
+  ds.numericColumns.slice(0, 2).forEach((col, index)=>{
+    const values = numericValues(ds, col);
+    if(!values.length) return;
+    kpis.push({
+      label:index===0 ? `Total ${col}` : `Avg. ${col}`,
+      value:index===0 ? formatMetricValue(sumValues(values)) : formatMetricValue(avgValues(values)),
+      sub:index===0 ? 'Sum of detected numeric field' : 'Average of detected numeric field',
+      tone:index===0 ? 'amber' : 'violet'
+    });
+  });
+  if(kpis.length<4 && ds.categoricalColumns.length){
+    const col = ds.categoricalColumns[0];
+    kpis.push({label:`Distinct ${col}`, value:fmtNum(distinctCount(ds, col)), sub:'Unique values', tone:'red'});
+  }
+  return kpis.slice(0, 4);
+}
+function generateDatasetCharts(ds, index){
+  const charts = [];
+  const cat = ds.categoricalColumns.find(col=>distinctCount(ds, col)>1 && distinctCount(ds, col)<=30);
+  const num = ds.numericColumns.find(col=>numericValues(ds, col).length>1);
+  const secondNum = ds.numericColumns.find(col=>col!==num && numericValues(ds, col).length>1);
+  const date = ds.dateColumns[0];
+  if(cat && num){
+    const rows = topCategories(ds, cat, num);
+    charts.push({id:`user-${index}-cat-num`, title:`${num} by ${cat}`, bq:`Which ${cat} values contribute most to ${num}?`,
+      insight:`<b>Insight:</b> ${htmlEscape(rows[0]?.label || 'No category')} has the highest ${htmlEscape(num)} total in this dataset.`,
+      build:id=>makeChart(id,{type:'bar',data:{labels:rows.map(r=>r.label),datasets:[{label:num,data:rows.map(r=>r.total),backgroundColor:PALETTE[0],borderRadius:4}]},options:baseChartOpts({plugins:{legend:{display:false}}})})});
+  }
+  if(date && num){
+    const rows = timeline(ds, date, num);
+    if(rows.length>1) charts.push({id:`user-${index}-line`, title:`${num} Trend`, bq:`How does ${num} move over time?`,
+      insight:`<b>Insight:</b> The trend uses ${htmlEscape(date)} grouped by month and sums ${htmlEscape(num)}.`,
+      build:id=>makeChart(id,{type:'line',data:{labels:rows.map(r=>r.label),datasets:[{label:num,data:rows.map(r=>r.total),borderColor:PALETTE[1],backgroundColor:'rgba(47,191,159,.14)',fill:true,tension:.35}]},options:baseChartOpts()})});
+  }
+  if(cat){
+    const rows = topCategories(ds, cat);
+    charts.push({id:`user-${index}-cat`, title:`Top ${cat} Values`, bq:`Which ${cat} values appear most often?`,
+      insight:`<b>Insight:</b> ${htmlEscape(rows[0]?.label || 'No category')} is the most frequent ${htmlEscape(cat)} value.`,
+      build:id=>makeChart(id,{type:'doughnut',data:{labels:rows.map(r=>r.label),datasets:[{data:rows.map(r=>r.count),backgroundColor:PALETTE,borderWidth:0}]},options:baseChartOpts({cutout:'62%'})})});
+  }
+  if(num && secondNum){
+    const points = (ds.parsedData||[]).slice(0, 500).map(row=>({x:Number(row[num]), y:Number(row[secondNum])})).filter(p=>Number.isFinite(p.x) && Number.isFinite(p.y));
+    if(points.length>2) charts.push({id:`user-${index}-scatter`, title:`${num} vs ${secondNum}`, bq:`Do two numeric fields move together?`,
+      insight:`<b>Insight:</b> The scatter plot compares ${htmlEscape(num)} and ${htmlEscape(secondNum)} across up to 500 records.`,
+      build:id=>makeChart(id,{type:'scatter',data:{datasets:[{label:`${num} vs ${secondNum}`,data:points,backgroundColor:'rgba(62,142,217,.55)'}]},options:baseChartOpts()})});
+  } else if(num){
+    const rows = histogram(ds, num);
+    charts.push({id:`user-${index}-hist`, title:`${num} Distribution`, bq:`How are ${num} values distributed?`,
+      insight:`<b>Insight:</b> Histogram buckets show the shape and spread of ${htmlEscape(num)} values.`,
+      build:id=>makeChart(id,{type:'bar',data:{labels:rows.map(r=>r.label),datasets:[{data:rows.map(r=>r.count),backgroundColor:PALETTE[3],borderRadius:4}]},options:baseChartOpts({plugins:{legend:{display:false}}})})});
+  }
+  return charts.slice(0, 4);
+}
+function generateDatasetInsights(ds){
+  const insights = [];
+  if(ds.missing>0) insights.push(`${fmtNum(ds.missing)} missing values were detected across ${fmtNum(ds.columns)} columns.`);
+  if(ds.duplicates>0) insights.push(`${fmtNum(ds.duplicates)} duplicate rows were detected.`);
+  const cat = ds.categoricalColumns.find(col=>distinctCount(ds, col)>1);
+  if(cat){
+    const top = topCategories(ds, cat)[0];
+    if(top) insights.push(`${top.label} is the most common ${cat} value with ${fmtNum(top.count)} records.`);
+  }
+  const num = ds.numericColumns.find(col=>numericValues(ds, col).length>1);
+  if(num){
+    const values = numericValues(ds, num);
+    const min = Math.min(...values), max = Math.max(...values), avg = avgValues(values);
+    insights.push(`${num} ranges from ${formatMetricValue(min)} to ${formatMetricValue(max)} with an average of ${formatMetricValue(avg)}.`);
+    const high = values.filter(v=>v > avg * 3).length;
+    if(avg>0 && high) insights.push(`${fmtNum(high)} ${num} values are more than three times the average.`);
+  }
+  if(!insights.length) insights.push('No numeric or categorical patterns were strong enough to summarize.');
+  return insights;
+}
+function generateProjectAnalytics(datasets){
+  const enriched = datasets.map(enrichDatasetProfile);
+  const relationships = detectRelationships(enriched);
+  const datasetAnalytics = enriched.map((ds,index)=>({
+    dataset: ds,
+    kpis: generateDatasetKPIs(ds),
+    charts: generateDatasetCharts(ds, index),
+    insights: generateDatasetInsights(ds)
+  }));
+  const dashboards = [{key:'exec', title:'Executive Overview', type:'executive'}]
+    .concat(datasetAnalytics.map((item,index)=>({key:`dataset-${index}`, title:titleFromName(item.dataset.name), type:'dataset', index})));
+  if(relationships.length) dashboards.push({key:'relationships', title:'Relationship Dashboard', type:'relationships'});
+  return { datasets:enriched, datasetAnalytics, relationships, dashboards };
 }
 
 // ---------- chart theme ----------
@@ -1015,6 +1257,130 @@ function renderDashboardPage(key){
   });
 }
 
+function projectChartCards(charts){
+  if(!charts.length){
+    return `<div class="panel placeholder-panel"><h3>No Meaningful Charts</h3><p>The loaded metadata did not contain enough numeric, date or categorical variation to create a useful chart.</p></div>`;
+  }
+  return `<div class="chart-grid">${charts.map(renderChartCard).join('')}</div>`;
+}
+function renderInsightPanel(insights, title='Dataset Insights'){
+  return `<div class="panel">
+    <h3>${title}</h3>
+    <div class="data-table-wrap"><table class="data-table"><tbody>
+      ${insights.map(item=>`<tr><td>${htmlEscape(item)}</td></tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+}
+function projectOverviewCharts(){
+  const analytics = userProjectAnalytics;
+  const rowData = analytics.datasets.map(ds=>({label:titleFromName(ds.name), rows:ds.rows}));
+  const qualityData = analytics.datasets.filter(ds=>ds.qualityScore!==null).map(ds=>({label:titleFromName(ds.name), score:ds.qualityScore}));
+  const domains = {};
+  analytics.datasets.forEach(ds=>{ domains[ds.domain] = (domains[ds.domain] || 0) + 1; });
+  const domainRows = Object.keys(domains).map(label=>({label, count:domains[label]}));
+  const charts = [
+    {id:'user-overview-rows', title:'Rows by Dataset', bq:'Which loaded datasets contain the most records?',
+      insight:`<b>Insight:</b> ${htmlEscape(rowData.sort((a,b)=>b.rows-a.rows)[0]?.label || 'No dataset')} has the highest row count.`,
+      build:id=>makeChart(id,{type:'bar',data:{labels:rowData.map(r=>r.label),datasets:[{data:rowData.map(r=>r.rows),backgroundColor:PALETTE[0],borderRadius:4}]},options:baseChartOpts({plugins:{legend:{display:false}}})})}
+  ];
+  if(qualityData.length){
+    charts.push({id:'user-overview-quality', title:'Data Quality Score', bq:'Which datasets need data quality attention?',
+      insight:`<b>Insight:</b> Scores reflect missing values and duplicate rows detected during profiling.`,
+      build:id=>makeChart(id,{type:'bar',data:{labels:qualityData.map(r=>r.label),datasets:[{data:qualityData.map(r=>r.score),backgroundColor:qualityData.map(r=>r.score<90?PALETTE[4]:PALETTE[1]),borderRadius:4}]},options:baseChartOpts({plugins:{legend:{display:false}},scales:{y:{grid:gridOpt(),min:0,max:100}}})})});
+  }
+  if(domainRows.length>1){
+    charts.push({id:'user-overview-domains', title:'Detected Dataset Domains', bq:'What dataset domains were inferred from column names?',
+      insight:`<b>Insight:</b> Domain classification uses column metadata, not filenames.`,
+      build:id=>makeChart(id,{type:'doughnut',data:{labels:domainRows.map(r=>r.label),datasets:[{data:domainRows.map(r=>r.count),backgroundColor:PALETTE,borderWidth:0}]},options:baseChartOpts({cutout:'62%'})})});
+  }
+  return charts;
+}
+function renderProjectOverview(){
+  const analytics = userProjectAnalytics;
+  const totalRows = analytics.datasets.reduce((sum,ds)=>sum+ds.rows,0);
+  const totalColumns = analytics.datasets.reduce((sum,ds)=>sum+ds.columns,0);
+  const totalMissing = analytics.datasets.reduce((sum,ds)=>sum+ds.missing,0);
+  const charts = projectOverviewCharts();
+  const kpis = [
+    {label:'Datasets', value:fmtNum(analytics.datasets.length), sub:'Loaded project files', tone:'accent'},
+    {label:'Total Rows', value:fmtNum(totalRows), sub:'Records profiled', tone:'teal'},
+    {label:'Total Columns', value:fmtNum(totalColumns), sub:'Fields available', tone:'amber'},
+    {label:'Relationships', value:fmtNum(analytics.relationships.length), sub:'Candidate links detected', tone:'violet'}
+  ];
+  const insights = [
+    `${fmtNum(analytics.datasets.length)} dataset${analytics.datasets.length===1?'':'s'} are loaded with ${fmtNum(totalRows)} total rows.`,
+    `${fmtNum(totalMissing)} missing values were found during profiling.`,
+    analytics.relationships.length ? `${fmtNum(analytics.relationships.length)} candidate relationships were detected.` : 'No candidate relationships were detected from column names and values.'
+  ];
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div class="eyebrow">User Project</div>
+      <h2>Executive Overview</h2>
+      <p>Automatically generated from the uploaded dataset metadata, parsed rows and detected relationships.</p>
+    </div>
+    <div class="kpi-grid">${kpis.map(renderKPI).join('')}</div>
+    ${projectChartCards(charts)}
+    ${renderInsightPanel(insights, 'Project Insights')}
+  `;
+  charts.forEach(chart=>chart.build(chart.id));
+}
+function renderDatasetDashboard(index){
+  const item = userProjectAnalytics.datasetAnalytics[index];
+  const ds = item.dataset;
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div class="eyebrow">${htmlEscape(ds.domain)} Dataset</div>
+      <h2>${htmlEscape(titleFromName(ds.name))}</h2>
+      <p>${fmtNum(ds.rows)} rows, ${fmtNum(ds.columns)} columns, ${fmtNum(ds.numericColumns.length)} numeric fields, ${fmtNum(ds.dateColumns.length)} date fields and ${fmtNum(ds.categoricalColumns.length)} categorical fields.</p>
+    </div>
+    <div class="kpi-grid">${item.kpis.map(renderKPI).join('')}</div>
+    ${projectChartCards(item.charts)}
+    ${renderInsightPanel(item.insights)}
+    <div class="panel">
+      <h3>Inferred Schema</h3>
+      <div class="data-table-wrap"><table class="data-table">
+        <thead><tr><th>Column</th><th>Type</th><th>Missing Values</th></tr></thead>
+        <tbody>${(ds.inferredSchema||[]).map(col=>`<tr><td>${htmlEscape(col.name)}</td><td>${htmlEscape(col.type)}</td><td>${fmtNum(col.missing)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+  `;
+  item.charts.forEach(chart=>chart.build(chart.id));
+}
+function renderRelationshipDashboard(){
+  const rels = userProjectAnalytics.relationships;
+  const chart = {id:'user-relationship-confidence', title:'Relationship Confidence', bq:'Which detected links have the strongest metadata and value match?',
+    insight:`<b>Insight:</b> Confidence is based on column-name similarity and sampled value overlap.`,
+    build:id=>makeChart(id,{type:'bar',data:{labels:rels.map(r=>`${r.fromDataset}.${r.fromColumn}`),datasets:[{data:rels.map(r=>r.confidence),backgroundColor:PALETTE[0],borderRadius:4}]},options:baseChartOpts({indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:gridOpt(),min:0,max:100}}})})};
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div class="eyebrow">Detected Data Model</div>
+      <h2>Relationship Dashboard</h2>
+      <p>Candidate relationships inferred from matching column names, identifier-like fields and sampled value overlap.</p>
+    </div>
+    <div class="kpi-grid">
+      ${renderKPI({label:'Relationships', value:fmtNum(rels.length), sub:'Candidate links', tone:'accent'})}
+      ${renderKPI({label:'Datasets Linked', value:fmtNum(new Set(rels.flatMap(r=>[r.fromDataset,r.toDataset])).size), sub:'Participating datasets', tone:'teal'})}
+      ${renderKPI({label:'Avg. Confidence', value:fmtPct(rels.reduce((a,r)=>a+r.confidence,0)/Math.max(rels.length,1),0), sub:'Name and value match', tone:'amber'})}
+    </div>
+    ${renderChartCard(chart)}
+    <div class="panel">
+      <h3>Relationship Model</h3>
+      <div class="data-table-wrap"><table class="data-table">
+        <thead><tr><th>From Dataset</th><th>From Column</th><th>To Dataset</th><th>To Column</th><th>Confidence</th></tr></thead>
+        <tbody>${rels.map(r=>`<tr><td>${htmlEscape(r.fromDataset)}</td><td>${htmlEscape(r.fromColumn)}</td><td>${htmlEscape(r.toDataset)}</td><td>${htmlEscape(r.toColumn)}</td><td>${r.confidence}%</td></tr>`).join('')}</tbody>
+      </table></div>
+    </div>
+  `;
+  chart.build(chart.id);
+}
+function renderUserDashboardPage(key){
+  const dashboard = userProjectAnalytics?.dashboards.find(page=>page.key===key);
+  if(!dashboard) return renderStatePlaceholder(key);
+  if(dashboard.type==='executive') return renderProjectOverview();
+  if(dashboard.type==='relationships') return renderRelationshipDashboard();
+  return renderDatasetDashboard(dashboard.index);
+}
+
 // ---------- Modal ----------
 const modalOverlay = document.getElementById('previewModal');
 document.getElementById('modalClose').addEventListener('click', ()=>modalOverlay.classList.remove('open'));
@@ -1109,6 +1475,7 @@ async function loadUploadedData(){
     ProjectManager.loadUserProject(loaded);
     ProjectManager.currentPage = 'workspace';
     uploadStatusMessage = `${loaded.length} dataset${loaded.length===1?'':'s'} loaded as the active project.`;
+    renderSidebarNavigation();
     renderWorkspace();
     updateAppShell();
   } catch(err){
@@ -1123,9 +1490,11 @@ function removeDataset(name){
   if(ProjectManager.state === APP_STATES.USER_PROJECT){
     DatasetRegistry.remove(name);
     if(DatasetRegistry.list().length===0) ProjectManager.clearProject();
+    else userProjectAnalytics = generateProjectAnalytics(DatasetRegistry.list());
   }
   uploadStatusMessage = `${name} removed.`;
   uploadStatusIsError = false;
+  renderSidebarNavigation();
   renderWorkspace();
   updateAppShell();
 }
@@ -1136,6 +1505,7 @@ function clearProject(){
   uploadStatusIsError = false;
   ProjectManager.clearProject();
   ProjectManager.currentPage = 'workspace';
+  renderSidebarNavigation();
   goToPage('workspace');
 }
 
@@ -1145,6 +1515,7 @@ function loadDemoProject(){
   uploadStatusIsError = false;
   ProjectManager.loadDemo();
   ProjectManager.currentPage = 'workspace';
+  renderSidebarNavigation();
   goToPage('workspace');
 }
 
@@ -1193,7 +1564,7 @@ function renderWorkspaceStatePanel(profiles){
       <h3>Loaded Dataset Registry</h3>
       <div class="ai-rec good">
         <div class="rec-icon">✓</div>
-        <div class="rec-text"><b>User project active.</b> ${profiles.length} dataset${profiles.length===1?'':'s'} parsed and stored in the Dataset Registry. Dashboard and documentation generation are intentionally reserved for a later phase.</div>
+        <div class="rec-text"><b>User project active.</b> ${profiles.length} dataset${profiles.length===1?'':'s'} parsed and stored in the Dataset Registry. Dynamic dashboards are generated from the current project metadata.</div>
       </div>
     </div>`;
   }
@@ -1762,13 +2133,39 @@ const PAGE_META = {
   combined: {title:'Combined Analytics', crumb:'Dashboard / Combined Analytics'},
   docs: {title:'Documentation Center', crumb:'Documentation / Documentation Center'},
 };
+const DEMO_DASHBOARD_NAV = [
+  ['exec','◆','Executive Overview'],
+  ['financial','£','Financial Performance'],
+  ['operations','⚙','Operations'],
+  ['clinical','✚','Clinical Performance'],
+  ['ed','⏱','Emergency Department'],
+  ['patients','◍','Patient Insights'],
+  ['combined','⬡','Combined Analytics']
+];
+
+function getPageMeta(key){
+  const generated = userProjectAnalytics?.dashboards.find(page=>page.key===key);
+  if(generated) return {title:generated.title, crumb:`Dashboard / ${generated.title}`};
+  return PAGE_META[key] || {title:'Dashboard', crumb:'Dashboard'};
+}
+function renderSidebarNavigation(){
+  const group = document.getElementById('dashboardNavGroup');
+  const items = ProjectManager.state===APP_STATES.USER_PROJECT && userProjectAnalytics
+    ? userProjectAnalytics.dashboards.map(page=>[page.key, page.type==='relationships'?'⬡':(page.type==='executive'?'◆':'▦'), page.title])
+    : DEMO_DASHBOARD_NAV;
+  group.innerHTML = `<div class="nav-label">Dashboard</div>` + items.map(item=>
+    `<div class="nav-item" data-page="${item[0]}"><span class="nav-icon">${item[1]}</span>${htmlEscape(item[2])}</div>`
+  ).join('');
+  bindNavigationEvents();
+  updateAppShell();
+}
 
 function renderStatePlaceholder(key){
   const isEmpty = ProjectManager.state === APP_STATES.EMPTY;
-  const title = PAGE_META[key].title;
+  const title = getPageMeta(key).title;
   const message = isEmpty
     ? 'No active project is loaded. Use the Data Workspace to load uploaded datasets or restore the demo project.'
-    : 'This uploaded project is loaded and stored in the Dataset Registry. Dynamic dashboard and documentation generation are planned for a later phase.';
+    : 'This generated page is not available for the current uploaded project.';
   document.getElementById('content').innerHTML = `
     <div class="page-head">
       <div class="eyebrow">${isEmpty ? 'Empty Project' : 'User Project'}</div>
@@ -1791,10 +2188,12 @@ function updateAppShell(){
 
 function goToPage(key){
   ProjectManager.currentPage = key;
+  const meta = getPageMeta(key);
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===key));
-  document.getElementById('topbarTitle').textContent = PAGE_META[key].title;
-  document.getElementById('topbarCrumb').textContent = PAGE_META[key].crumb;
+  document.getElementById('topbarTitle').textContent = meta.title;
+  document.getElementById('topbarCrumb').textContent = meta.crumb;
   if(key==='workspace') renderWorkspace();
+  else if(ProjectManager.state===APP_STATES.USER_PROJECT && key!=='docs') renderUserDashboardPage(key);
   else if(ProjectManager.state!==APP_STATES.DEMO) renderStatePlaceholder(key);
   else if(key==='docs') renderDocs();
   else renderDashboardPage(key);
@@ -1803,12 +2202,18 @@ function goToPage(key){
   document.getElementById('sidebar').classList.remove('open');
 }
 
-document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click', ()=>goToPage(item.dataset.page));
-});
+function bindNavigationEvents(){
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.onclick = ()=>{
+      if(item.classList.contains('disabled')) return;
+      goToPage(item.dataset.page);
+    };
+  });
+}
 document.getElementById('menuBtn').addEventListener('click', ()=>{
   document.getElementById('sidebar').classList.toggle('open');
 });
 
+bindNavigationEvents();
 goToPage('exec');
 </script></body></html>
