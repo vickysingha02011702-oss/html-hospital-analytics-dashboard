@@ -187,7 +187,7 @@ The platform includes a complete healthcare demonstration dataset allowing users
 
 <div align="center">
 
-![Load Demo](html%20dashboard/images/load-demo.png)
+![Load Demo](html%20dashboard/images/demo-load.png)
 
 </div>
 
