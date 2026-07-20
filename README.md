@@ -1033,12 +1033,12 @@ If you found this project interesting, have suggestions for improvements, or wou
 
 **LinkedIn**
 
-https://linkedin.com/in/your-profile
+['[Vicky Singha](https://www.linkedin.com/in/vicky-singha-6590b2415/)']
 
 
 **Email**
 
-your.email@example.com
+<vickysingha.02011702@gmail.com>
 
 ---
 
