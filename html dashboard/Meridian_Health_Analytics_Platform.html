@@ -199,6 +199,22 @@ button{font-family:inherit;cursor:pointer;}
 .insight-box .action{color:var(--teal);font-weight:600;}
 .meta-row{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text-faint);margin-bottom:10px;}
 .meta-row span b{color:var(--text-muted);font-weight:500;}
+.kpi-card.clickable{cursor:pointer;transition:transform .15s ease,border-color .15s ease;}
+.kpi-card.clickable:hover{transform:translateY(-1px);border-color:#2C3742;}
+.filter-panel{padding-bottom:14px;}
+.filter-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
+.filter-head p{font-size:12.3px;color:var(--text-muted);margin-top:3px;}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+.filter-control{background:var(--surface-2);border:1px solid var(--border-soft);border-radius:9px;padding:11px 12px;}
+.filter-control label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-faint);font-weight:700;margin-bottom:7px;}
+.filter-control input,.filter-control select{
+  width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);padding:7px 9px;font-size:12.2px;font-family:var(--font-body);
+}
+.filter-range{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.filter-status{font-size:11.8px;color:var(--text-faint);margin-top:10px;}
+.filter-status.warn{color:var(--amber);}
+.interaction-panel{margin-top:-10px;}
 
 /* ===== DATA WORKSPACE ===== */
 .dataset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:28px;}
@@ -448,6 +464,9 @@ let uploadedDatasets = [];
 let uploadStatusMessage = '';
 let uploadStatusIsError = false;
 let userProjectAnalytics = null;
+let userFilterState = {};
+let dashboardInteractionState = {};
+let filterStatusMessage = '';
 
 const DatasetRegistry = {
   datasets: [],
@@ -465,11 +484,17 @@ const ProjectManager = {
     this.state = APP_STATES.DEMO;
     this.activeProject = { name:'Meridian Health Demo', type:APP_STATES.DEMO };
     userProjectAnalytics = null;
+    userFilterState = {};
+    dashboardInteractionState = {};
+    filterStatusMessage = '';
     DatasetRegistry.load(DATA.datasetProfiles.map(profile=>Object.assign({ demo:true }, profile)));
   },
   loadUserProject(datasets){
     this.state = APP_STATES.USER_PROJECT;
     this.activeProject = { name:'Uploaded Project', type:APP_STATES.USER_PROJECT };
+    userFilterState = {};
+    dashboardInteractionState = {};
+    filterStatusMessage = '';
     DatasetRegistry.load(datasets);
     userProjectAnalytics = generateProjectAnalytics(datasets);
   },
@@ -477,6 +502,9 @@ const ProjectManager = {
     this.state = APP_STATES.EMPTY;
     this.activeProject = null;
     userProjectAnalytics = null;
+    userFilterState = {};
+    dashboardInteractionState = {};
+    filterStatusMessage = '';
     DatasetRegistry.clear();
   }
 };
@@ -566,9 +594,12 @@ function parseCSV(text){
       cell += ch;
     }
   }
+  if(inQuotes) throw new Error('Invalid CSV: check for unmatched quotation marks.');
   row.push(cell);
   if(row.some(v=>v.trim()!=='')) rows.push(row);
-  if(rows.length===0) return [];
+  if(rows.length===0) throw new Error('This CSV file is empty.');
+  if(rows[0].every(h=>String(h).trim()==='')) throw new Error('CSV headers are missing. Add a header row and try again.');
+  if(rows.length===1) throw new Error('This CSV file has headers but no data rows.');
   const headers = rows[0].map((h,i)=>h.trim() || `Column_${i+1}`);
   return rows.slice(1).map(values=>{
     const record = {};
@@ -591,6 +622,7 @@ function inferSchema(data){
 }
 
 function buildDatasetProfile(file, data){
+  if(!data.length) throw new Error(`${file.name} contains no data rows.`);
   const name = fileNameWithoutExtension(file.name);
   const schema = inferSchema(data);
   const missing = schema.reduce((total,col)=>total+col.missing,0);
@@ -631,10 +663,15 @@ async function parseDatasetFile(file){
   }
   if(type === 'xlsx' || type === 'xls'){
     await ensureXLSX();
-    const buffer = await readFileAsArrayBuffer(file);
-    const workbook = XLSX.read(buffer, { type:'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    return buildDatasetProfile(file, XLSX.utils.sheet_to_json(sheet, { defval:'' }));
+    try{
+      const buffer = await readFileAsArrayBuffer(file);
+      const workbook = XLSX.read(buffer, { type:'array' });
+      if(!workbook.SheetNames.length) throw new Error('The Excel workbook has no sheets.');
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      return buildDatasetProfile(file, XLSX.utils.sheet_to_json(sheet, { defval:'' }));
+    } catch(err){
+      throw new Error(err.message || 'Unable to read this Excel file. Check that it is a valid workbook.');
+    }
   }
   throw new Error(`${file.name} is not a supported dataset type.`);
 }
@@ -780,7 +817,7 @@ function timeline(ds, dateCol, metricCol){
 }
 function generateDatasetKPIs(ds){
   const kpis = [
-    {label:'Rows', value:fmtNum(ds.rows), sub:'Records loaded', tone:'accent'},
+    {label:'Rows', value:fmtNum(ds.rows), sub:'Records in current view', tone:'accent'},
     {label:'Columns', value:fmtNum(ds.columns), sub:'Fields detected', tone:'teal'}
   ];
   ds.numericColumns.slice(0, 2).forEach((col, index)=>{
@@ -797,7 +834,9 @@ function generateDatasetKPIs(ds){
     const col = ds.categoricalColumns[0];
     kpis.push({label:`Distinct ${col}`, value:fmtNum(distinctCount(ds, col)), sub:'Unique values', tone:'red'});
   }
-  return kpis.slice(0, 4);
+  return kpis.slice(0, 4).map(k=>Object.assign(k, {
+    action:`setDashboardFocus('kpi','${jsString(k.label)}','${jsString(k.sub || 'Metric selected for review.')}')`
+  }));
 }
 function generateDatasetCharts(ds, index){
   const charts = [];
@@ -809,7 +848,7 @@ function generateDatasetCharts(ds, index){
     const rows = topCategories(ds, cat, num);
     charts.push({id:`user-${index}-cat-num`, title:`${num} by ${cat}`, bq:`Which ${cat} values contribute most to ${num}?`,
       insight:`<b>Insight:</b> ${htmlEscape(rows[0]?.label || 'No category')} has the highest ${htmlEscape(num)} total in this dataset.`,
-      build:id=>makeChart(id,{type:'bar',data:{labels:rows.map(r=>r.label),datasets:[{label:num,data:rows.map(r=>r.total),backgroundColor:PALETTE[0],borderRadius:4}]},options:baseChartOpts({plugins:{legend:{display:false}}})})});
+      build:id=>makeChart(id,{type:'bar',data:{labels:rows.map(r=>r.label),datasets:[{label:num,data:rows.map(r=>r.total),backgroundColor:PALETTE[0],borderRadius:4}]},options:baseChartOpts({plugins:{legend:{display:false}}}),meta:{datasetName:ds.name,filterColumn:cat,values:rows.map(r=>r.label),title:`${num} by ${cat}`}})});
   }
   if(date && num){
     const rows = timeline(ds, date, num);
@@ -821,7 +860,7 @@ function generateDatasetCharts(ds, index){
     const rows = topCategories(ds, cat);
     charts.push({id:`user-${index}-cat`, title:`Top ${cat} Values`, bq:`Which ${cat} values appear most often?`,
       insight:`<b>Insight:</b> ${htmlEscape(rows[0]?.label || 'No category')} is the most frequent ${htmlEscape(cat)} value.`,
-      build:id=>makeChart(id,{type:'doughnut',data:{labels:rows.map(r=>r.label),datasets:[{data:rows.map(r=>r.count),backgroundColor:PALETTE,borderWidth:0}]},options:baseChartOpts({cutout:'62%'})})});
+      build:id=>makeChart(id,{type:'doughnut',data:{labels:rows.map(r=>r.label),datasets:[{data:rows.map(r=>r.count),backgroundColor:PALETTE,borderWidth:0}]},options:baseChartOpts({cutout:'62%'}),meta:{datasetName:ds.name,filterColumn:cat,values:rows.map(r=>r.label),title:`Top ${cat} Values`}})});
   }
   if(num && secondNum){
     const points = (ds.parsedData||[]).slice(0, 500).map(row=>({x:Number(row[num]), y:Number(row[secondNum])})).filter(p=>Number.isFinite(p.x) && Number.isFinite(p.y));
@@ -871,6 +910,183 @@ function generateProjectAnalytics(datasets){
   return { datasets:enriched, datasetAnalytics, relationships, dashboards };
 }
 
+// ---------- dynamic filters ----------
+function attrEscape(value){ return htmlEscape(value).replace(/`/g,'&#96;'); }
+function schemaType(ds, col){
+  return (ds.inferredSchema||[]).find(item=>item.name===col)?.type || 'text';
+}
+function minMax(values){
+  const clean = values.filter(Number.isFinite);
+  return clean.length ? {min:Math.min(...clean), max:Math.max(...clean)} : null;
+}
+function dateRange(ds, col){
+  const values = columnValues(ds, col).map(v=>new Date(v)).filter(d=>!isNaN(d));
+  if(!values.length) return null;
+  const min = new Date(Math.min(...values)), max = new Date(Math.max(...values));
+  return {min:min.toISOString().slice(0,10), max:max.toISOString().slice(0,10)};
+}
+function filterDefinitions(ds){
+  const defs = [];
+  (ds.inferredSchema||[]).forEach(col=>{
+    const type = col.type;
+    const distinct = distinctCount(ds, col.name);
+    if(type==='boolean') defs.push({type:'boolean', column:col.name, options:topCategories(ds, col.name, null, 10).map(r=>r.label)});
+    else if(type==='number'){
+      const range = minMax(numericValues(ds, col.name));
+      if(range && range.min!==range.max) defs.push({type:'number', column:col.name, range});
+    } else if(type==='date'){
+      const range = dateRange(ds, col.name);
+      if(range) defs.push({type:'date', column:col.name, range});
+    } else if(/name|description|comment|note|text/i.test(col.name)){
+      defs.push({type:'text', column:col.name});
+    } else if(distinct>1 && distinct<=30){
+      defs.push({type:'category', column:col.name, options:topCategories(ds, col.name, null, 50).map(r=>r.label)});
+    } else if(distinct>30){
+      defs.push({type:'text', column:col.name});
+    }
+  });
+  return defs.slice(0, 8);
+}
+function activeFilterCount(){
+  return Object.values(userFilterState).reduce((total,filters)=>total+Object.keys(filters).length,0);
+}
+function filterSummary(){
+  const count = activeFilterCount();
+  return count ? `${count} active filter${count===1?'':'s'}` : 'No active filters';
+}
+function isFilterEmpty(filter){
+  if(!filter) return true;
+  if(filter.type==='number') return cleanValue(filter.min)==='' && cleanValue(filter.max)==='';
+  if(filter.type==='date') return cleanValue(filter.from)==='' && cleanValue(filter.to)==='';
+  return cleanValue(filter.value)==='';
+}
+function setFilterValue(datasetName, column, type, field, value){
+  try{
+    if(!userFilterState[datasetName]) userFilterState[datasetName] = {};
+    const current = userFilterState[datasetName][column] || {type};
+    current[field] = value;
+    if(isFilterEmpty(current)) delete userFilterState[datasetName][column];
+    else userFilterState[datasetName][column] = current;
+    if(!Object.keys(userFilterState[datasetName]).length) delete userFilterState[datasetName];
+    filterStatusMessage = `${filterSummary()}.`;
+    goToPage(ProjectManager.currentPage);
+  } catch(err){
+    filterStatusMessage = 'Unable to apply this filter. Check the selected values and try again.';
+    goToPage(ProjectManager.currentPage);
+  }
+}
+function resetFilters(){
+  userFilterState = {};
+  filterStatusMessage = 'Filters reset.';
+  goToPage(ProjectManager.currentPage);
+}
+function rowMatchesFilter(row, filter, col){
+  if(filter.type==='boolean'){
+    return cleanValue(row[col]).toLowerCase() === cleanValue(filter.value).toLowerCase();
+  }
+  if(filter.type==='category'){
+    return cleanValue(row[col]) === cleanValue(filter.value);
+  }
+  if(filter.type==='text'){
+    return cleanValue(row[col]).toLowerCase().includes(cleanValue(filter.value).toLowerCase());
+  }
+  if(filter.type==='number'){
+    const value = Number(row[col]);
+    if(!Number.isFinite(value)) return false;
+    if(cleanValue(filter.min)!=='' && value < Number(filter.min)) return false;
+    if(cleanValue(filter.max)!=='' && value > Number(filter.max)) return false;
+    return true;
+  }
+  if(filter.type==='date'){
+    const value = Date.parse(row[col]);
+    if(isNaN(value)) return false;
+    if(cleanValue(filter.from)!=='' && value < Date.parse(filter.from)) return false;
+    if(cleanValue(filter.to)!=='' && value > Date.parse(filter.to)) return false;
+    return true;
+  }
+  return true;
+}
+function applyDatasetFilters(ds){
+  const filters = userFilterState[ds.name] || {};
+  const rows = (ds.parsedData||[]).filter(row=>Object.keys(filters).every(col=>rowMatchesFilter(row, filters[col], col)));
+  const schema = (ds.inferredSchema||[]).map(col=>{
+    const values = rows.map(row=>row[col.name]).filter(v=>cleanValue(v)!=='');
+    return Object.assign({}, col, {missing:rows.length-values.length});
+  });
+  const missing = schema.reduce((total,col)=>total+col.missing,0);
+  const duplicates = rows.length - new Set(rows.map(row=>JSON.stringify(row))).size;
+  const totalCells = Math.max(rows.length * Math.max(schema.length,1), 1);
+  const qualityScore = Math.max(0, Math.round((1 - (missing + duplicates) / totalCells) * 1000) / 10);
+  return Object.assign({}, ds, {
+    rows: rows.length,
+    missing,
+    duplicates,
+    qualityScore,
+    inferredSchema: schema,
+    parsedData: rows,
+    preview: rows.slice(0,5)
+  });
+}
+function activeProjectAnalytics(){
+  if(!userProjectAnalytics || !activeFilterCount()) return userProjectAnalytics;
+  const filtered = userProjectAnalytics.datasets.map(applyDatasetFilters);
+  const analytics = generateProjectAnalytics(filtered);
+  analytics.relationships = userProjectAnalytics.relationships;
+  analytics.dashboards = userProjectAnalytics.dashboards;
+  return analytics;
+}
+function renderFilterControl(ds, def){
+  const state = userFilterState[ds.name]?.[def.column] || {};
+  const dsName = jsString(ds.name), column = jsString(def.column);
+  const label = `${titleFromName(ds.name)} / ${def.column}`;
+  if(def.type==='category' || def.type==='boolean'){
+    const options = (def.options||[]).map(opt=>`<option value="${attrEscape(opt)}" ${cleanValue(state.value)===cleanValue(opt)?'selected':''}>${htmlEscape(opt)}</option>`).join('');
+    return `<div class="filter-control"><label>${htmlEscape(label)}</label><select onchange="setFilterValue('${dsName}','${column}','${def.type}','value',this.value)"><option value="">All</option>${options}</select></div>`;
+  }
+  if(def.type==='text'){
+    return `<div class="filter-control"><label>${htmlEscape(label)}</label><input type="search" value="${attrEscape(state.value||'')}" placeholder="Contains text" onchange="setFilterValue('${dsName}','${column}','text','value',this.value)"></div>`;
+  }
+  if(def.type==='number'){
+    return `<div class="filter-control"><label>${htmlEscape(label)}</label><div class="filter-range">
+      <input type="number" value="${attrEscape(state.min||'')}" placeholder="${attrEscape(def.range.min)}" onchange="setFilterValue('${dsName}','${column}','number','min',this.value)">
+      <input type="number" value="${attrEscape(state.max||'')}" placeholder="${attrEscape(def.range.max)}" onchange="setFilterValue('${dsName}','${column}','number','max',this.value)">
+    </div></div>`;
+  }
+  return `<div class="filter-control"><label>${htmlEscape(label)}</label><div class="filter-range">
+    <input type="date" value="${attrEscape(state.from||'')}" min="${attrEscape(def.range.min)}" max="${attrEscape(def.range.max)}" onchange="setFilterValue('${dsName}','${column}','date','from',this.value)">
+    <input type="date" value="${attrEscape(state.to||'')}" min="${attrEscape(def.range.min)}" max="${attrEscape(def.range.max)}" onchange="setFilterValue('${dsName}','${column}','date','to',this.value)">
+  </div></div>`;
+}
+function renderFilterPanel(datasets){
+  const controls = datasets.flatMap(ds=>filterDefinitions(ds).map(def=>renderFilterControl(ds, def)));
+  if(!controls.length) return '';
+  return `<div class="panel filter-panel">
+    <div class="filter-head">
+      <div><h3>Dashboard Filters</h3><p>${filterSummary()}. Filters are generated from dataset metadata and apply without reloading the project.</p></div>
+      <button class="btn" type="button" onclick="resetFilters()" ${activeFilterCount() ? '' : 'disabled'}>Reset Filters</button>
+    </div>
+    <div class="filter-grid">${controls.join('')}</div>
+    <div class="filter-status ${filterStatusMessage ? 'warn' : ''}">${filterStatusMessage || 'Use filters to update KPIs, charts and insights.'}</div>
+  </div>`;
+}
+function setDashboardFocus(type, title, detail){
+  dashboardInteractionState[ProjectManager.currentPage] = {type, title, detail};
+  goToPage(ProjectManager.currentPage);
+}
+function renderInteractionPanel(){
+  const focus = dashboardInteractionState[ProjectManager.currentPage];
+  if(!focus) return '';
+  return `<div class="ai-rec interaction-panel">
+    <div class="rec-icon">i</div>
+    <div class="rec-text"><b>${htmlEscape(focus.title)}</b> ${htmlEscape(focus.detail)}</div>
+  </div>`;
+}
+function applyChartSelection(datasetName, column, value, title){
+  if(!datasetName || !column || cleanValue(value)==='') return;
+  dashboardInteractionState[ProjectManager.currentPage] = {type:'chart', title, detail:`Filtered ${column} to ${value}.`};
+  setFilterValue(datasetName, column, schemaType(userProjectAnalytics.datasets.find(ds=>ds.name===datasetName)||{}, column)==='boolean'?'boolean':'category', 'value', value);
+}
+
 // ---------- chart theme ----------
 Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
 Chart.defaults.font.size = 11.5;
@@ -878,27 +1094,49 @@ Chart.defaults.color = '#8B98A5';
 const PALETTE = ['#3E8ED9','#2FBF9F','#E0A83E','#9385D6','#E5566B','#5AC8E0','#D68F5E','#7FA8C9','#C9A6E0','#6FCF97'];
 function gridOpt(){ return { color:'rgba(255,255,255,0.05)', drawTicks:false }; }
 function baseChartOpts(overrides={}){
-  return Object.assign({
+  const defaults = {
     responsive:true, maintainAspectRatio:false,
     plugins:{
       legend:{ labels:{ boxWidth:10, boxHeight:10, padding:14, usePointStyle:true } },
       tooltip:{
         backgroundColor:'#1D2630', titleColor:'#E7ECF1', bodyColor:'#C3CBD3',
         borderColor:'#2A3644', borderWidth:1, padding:10, cornerRadius:8,
-        titleFont:{weight:600}, displayColors:true
+        titleFont:{weight:600}, displayColors:true,
+        callbacks:{ label:(ctx)=>{
+          const label = ctx.dataset.label ? `${ctx.dataset.label}: ` : '';
+          const value = ctx.parsed?.y ?? ctx.parsed?.x ?? ctx.raw;
+          return label + (typeof value==='number' ? formatMetricValue(value) : value);
+        }}
       }
     },
     scales:{
       x:{ grid:gridOpt(), ticks:{color:'#8B98A5'} },
       y:{ grid:gridOpt(), ticks:{color:'#8B98A5'} }
     }
-  }, overrides);
+  };
+  const merged = Object.assign({}, defaults, overrides);
+  merged.plugins = Object.assign({}, defaults.plugins, overrides.plugins || {});
+  merged.plugins.legend = Object.assign({}, defaults.plugins.legend, overrides.plugins?.legend || {});
+  merged.plugins.tooltip = Object.assign({}, defaults.plugins.tooltip, overrides.plugins?.tooltip || {});
+  merged.scales = Object.assign({}, defaults.scales, overrides.scales || {});
+  merged.scales.x = Object.assign({}, defaults.scales.x, overrides.scales?.x || {});
+  merged.scales.y = Object.assign({}, defaults.scales.y, overrides.scales?.y || {});
+  return merged;
 }
 const chartInstances = {};
 function makeChart(canvasId, config){
   if(chartInstances[canvasId]){ chartInstances[canvasId].destroy(); }
   const ctx = document.getElementById(canvasId);
   if(!ctx) return null;
+  if(config.meta?.filterColumn){
+    config.options = config.options || {};
+    config.options.onClick = (event, elements, chart)=>{
+      if(!elements.length) return;
+      const index = elements[0].index;
+      const value = config.meta.values?.[index] ?? chart.data.labels[index];
+      applyChartSelection(config.meta.datasetName, config.meta.filterColumn, value, config.meta.title || 'Chart Selection');
+    };
+  }
   chartInstances[canvasId] = new Chart(ctx, config);
   return chartInstances[canvasId];
 }
@@ -1219,7 +1457,8 @@ combined: {
 function renderKPI(k){
   const toneMap = {accent:'var(--accent)',teal:'var(--teal)',amber:'var(--amber)',red:'var(--red)',violet:'var(--violet)'};
   const accentColor = toneMap[k.tone] || 'var(--accent)';
-  return `<div class="kpi-card" style="--kpi-accent:${accentColor}">
+  const action = k.action ? ` onclick="${k.action}"` : '';
+  return `<div class="kpi-card ${k.action?'clickable':''}" style="--kpi-accent:${accentColor}"${action}>
     <div class="label">${k.label}</div>
     <div class="value">${k.value}</div>
     <div class="sub ${k.toneClass||''}">${k.sub||''}</div>
@@ -1271,8 +1510,7 @@ function renderInsightPanel(insights, title='Dataset Insights'){
     </tbody></table></div>
   </div>`;
 }
-function projectOverviewCharts(){
-  const analytics = userProjectAnalytics;
+function projectOverviewCharts(analytics){
   const rowData = analytics.datasets.map(ds=>({label:titleFromName(ds.name), rows:ds.rows}));
   const qualityData = analytics.datasets.filter(ds=>ds.qualityScore!==null).map(ds=>({label:titleFromName(ds.name), score:ds.qualityScore}));
   const domains = {};
@@ -1296,17 +1534,17 @@ function projectOverviewCharts(){
   return charts;
 }
 function renderProjectOverview(){
-  const analytics = userProjectAnalytics;
+  const analytics = activeProjectAnalytics();
   const totalRows = analytics.datasets.reduce((sum,ds)=>sum+ds.rows,0);
   const totalColumns = analytics.datasets.reduce((sum,ds)=>sum+ds.columns,0);
   const totalMissing = analytics.datasets.reduce((sum,ds)=>sum+ds.missing,0);
-  const charts = projectOverviewCharts();
+  const charts = projectOverviewCharts(analytics);
   const kpis = [
     {label:'Datasets', value:fmtNum(analytics.datasets.length), sub:'Loaded project files', tone:'accent'},
-    {label:'Total Rows', value:fmtNum(totalRows), sub:'Records profiled', tone:'teal'},
+    {label:'Total Rows', value:fmtNum(totalRows), sub:'Records in current view', tone:'teal'},
     {label:'Total Columns', value:fmtNum(totalColumns), sub:'Fields available', tone:'amber'},
     {label:'Relationships', value:fmtNum(analytics.relationships.length), sub:'Candidate links detected', tone:'violet'}
-  ];
+  ].map(k=>Object.assign(k,{action:`setDashboardFocus('kpi','${jsString(k.label)}','${jsString(k.sub)}')`}));
   const insights = [
     `${fmtNum(analytics.datasets.length)} dataset${analytics.datasets.length===1?'':'s'} are loaded with ${fmtNum(totalRows)} total rows.`,
     `${fmtNum(totalMissing)} missing values were found during profiling.`,
@@ -1318,14 +1556,16 @@ function renderProjectOverview(){
       <h2>Executive Overview</h2>
       <p>Automatically generated from the uploaded dataset metadata, parsed rows and detected relationships.</p>
     </div>
+    ${renderFilterPanel(userProjectAnalytics.datasets)}
     <div class="kpi-grid">${kpis.map(renderKPI).join('')}</div>
+    ${renderInteractionPanel()}
     ${projectChartCards(charts)}
     ${renderInsightPanel(insights, 'Project Insights')}
   `;
   charts.forEach(chart=>chart.build(chart.id));
 }
 function renderDatasetDashboard(index){
-  const item = userProjectAnalytics.datasetAnalytics[index];
+  const item = activeProjectAnalytics().datasetAnalytics[index];
   const ds = item.dataset;
   document.getElementById('content').innerHTML = `
     <div class="page-head">
@@ -1333,7 +1573,9 @@ function renderDatasetDashboard(index){
       <h2>${htmlEscape(titleFromName(ds.name))}</h2>
       <p>${fmtNum(ds.rows)} rows, ${fmtNum(ds.columns)} columns, ${fmtNum(ds.numericColumns.length)} numeric fields, ${fmtNum(ds.dateColumns.length)} date fields and ${fmtNum(ds.categoricalColumns.length)} categorical fields.</p>
     </div>
+    ${renderFilterPanel([userProjectAnalytics.datasets[index]])}
     <div class="kpi-grid">${item.kpis.map(renderKPI).join('')}</div>
+    ${renderInteractionPanel()}
     ${projectChartCards(item.charts)}
     ${renderInsightPanel(item.insights)}
     <div class="panel">
@@ -1347,7 +1589,7 @@ function renderDatasetDashboard(index){
   item.charts.forEach(chart=>chart.build(chart.id));
 }
 function renderRelationshipDashboard(){
-  const rels = userProjectAnalytics.relationships;
+  const rels = activeProjectAnalytics().relationships;
   const chart = {id:'user-relationship-confidence', title:'Relationship Confidence', bq:'Which detected links have the strongest metadata and value match?',
     insight:`<b>Insight:</b> Confidence is based on column-name similarity and sampled value overlap.`,
     build:id=>makeChart(id,{type:'bar',data:{labels:rels.map(r=>`${r.fromDataset}.${r.fromColumn}`),datasets:[{data:rels.map(r=>r.confidence),backgroundColor:PALETTE[0],borderRadius:4}]},options:baseChartOpts({indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:gridOpt(),min:0,max:100}}})})};
@@ -1357,11 +1599,15 @@ function renderRelationshipDashboard(){
       <h2>Relationship Dashboard</h2>
       <p>Candidate relationships inferred from matching column names, identifier-like fields and sampled value overlap.</p>
     </div>
+    ${renderFilterPanel(userProjectAnalytics.datasets)}
     <div class="kpi-grid">
-      ${renderKPI({label:'Relationships', value:fmtNum(rels.length), sub:'Candidate links', tone:'accent'})}
-      ${renderKPI({label:'Datasets Linked', value:fmtNum(new Set(rels.flatMap(r=>[r.fromDataset,r.toDataset])).size), sub:'Participating datasets', tone:'teal'})}
-      ${renderKPI({label:'Avg. Confidence', value:fmtPct(rels.reduce((a,r)=>a+r.confidence,0)/Math.max(rels.length,1),0), sub:'Name and value match', tone:'amber'})}
+      ${[
+        {label:'Relationships', value:fmtNum(rels.length), sub:'Candidate links', tone:'accent'},
+        {label:'Datasets Linked', value:fmtNum(new Set(rels.flatMap(r=>[r.fromDataset,r.toDataset])).size), sub:'Participating datasets', tone:'teal'},
+        {label:'Avg. Confidence', value:fmtPct(rels.reduce((a,r)=>a+r.confidence,0)/Math.max(rels.length,1),0), sub:'Name and value match', tone:'amber'}
+      ].map(k=>renderKPI(Object.assign(k,{action:`setDashboardFocus('kpi','${jsString(k.label)}','${jsString(k.sub)}')`}))).join('')}
     </div>
+    ${renderInteractionPanel()}
     ${renderChartCard(chart)}
     <div class="panel">
       <h3>Relationship Model</h3>
@@ -1439,19 +1685,23 @@ function handleUploadFiles(fileList){
   if(supported.length===0){
     uploadStatusMessage = 'Choose CSV or Excel files to add them to the workspace.';
     uploadStatusIsError = true;
-    uploadStatus.textContent = uploadStatusMessage;
-    uploadStatus.classList.add('error');
+    if(uploadStatus){
+      uploadStatus.textContent = uploadStatusMessage;
+      uploadStatus.classList.add('error');
+    }
     return;
   }
+  let updated = 0;
   supported.forEach(file=>{
     const profile = uploadedProfileFromFile(file);
     const existingIndex = uploadedDatasets.findIndex(ds=>ds.file===profile.file);
-    if(existingIndex>=0) uploadedDatasets[existingIndex] = profile;
+    if(existingIndex>=0){ uploadedDatasets[existingIndex] = profile; updated++; }
     else uploadedDatasets.push(profile);
   });
   const skipped = files.length - supported.length;
   const suffix = skipped ? ` ${skipped} unsupported file${skipped===1?' was':'s were'} skipped.` : '';
-  uploadStatusMessage = `${supported.length} file${supported.length===1?'':'s'} added to the workspace.${suffix}`;
+  const added = supported.length - updated;
+  uploadStatusMessage = `${added} file${added===1?'':'s'} added${updated ? `, ${updated} duplicate file${updated===1?'':'s'} updated` : ''}.${suffix}`;
   uploadStatusIsError = false;
   renderWorkspace();
 }
@@ -1487,6 +1737,7 @@ async function loadUploadedData(){
 
 function removeDataset(name){
   uploadedDatasets = uploadedDatasets.filter(ds=>ds.name!==name);
+  delete userFilterState[name];
   if(ProjectManager.state === APP_STATES.USER_PROJECT){
     DatasetRegistry.remove(name);
     if(DatasetRegistry.list().length===0) ProjectManager.clearProject();
@@ -2064,7 +2315,135 @@ function mdToHtml(md){
   return html;
 }
 
+function markdownTable(headers, rows){
+  const safe = value=>String(value ?? '').replace(/\|/g,'/');
+  return `| ${headers.join(' | ')} |\n| ${headers.map(()=> '---').join(' | ')} |\n` +
+    rows.map(row=>`| ${row.map(safe).join(' | ')} |`).join('\n');
+}
+function buildUserProjectDocSections(){
+  const analytics = activeProjectAnalytics();
+  const datasets = analytics.datasets;
+  const filterLine = activeFilterCount() ? `\n\nActive filters: ${filterSummary()}.` : '';
+  const sections = [];
+  sections.push({
+    id:'exec-summary',
+    title:'Executive Summary',
+    md:`${datasets.length} dataset${datasets.length===1?'':'s'} are active with ${fmtNum(datasets.reduce((a,d)=>a+d.rows,0))} rows in the current view. ${fmtNum(analytics.relationships.length)} candidate relationship${analytics.relationships.length===1?'':'s'} are available in the generated data model.${filterLine}`
+  });
+  sections.push({
+    id:'dataset-summary',
+    title:'Dataset Summary',
+    md:markdownTable(['Dataset','Domain','Rows','Columns','Missing','Duplicates','Quality'], datasets.map(ds=>[
+      titleFromName(ds.name), ds.domain, fmtNum(ds.rows), fmtNum(ds.columns), fmtNum(ds.missing), fmtNum(ds.duplicates), `${ds.qualityScore}%`
+    ]))
+  });
+  sections.push({
+    id:'data-dictionary',
+    title:'Data Dictionary',
+    md:markdownTable(['Dataset','Column','Type','Missing Values'], datasets.flatMap(ds=>(ds.inferredSchema||[]).map(col=>[
+      titleFromName(ds.name), col.name, col.type, fmtNum(col.missing)
+    ])))
+  });
+  sections.push({
+    id:'column-analysis',
+    title:'Column Analysis',
+    md:markdownTable(['Dataset','Column','Role','Distinct','Minimum','Maximum'], datasets.flatMap(ds=>(ds.inferredSchema||[]).map(col=>{
+      const values = columnValues(ds, col.name);
+      const role = col.type==='number' ? 'Numeric' : (col.type==='date' ? 'Date' : (col.type==='boolean' ? 'Boolean' : 'Categorical/Text'));
+      const nums = col.type==='number' ? numericValues(ds, col.name) : [];
+      const dates = col.type==='date' ? values.map(v=>Date.parse(v)).filter(v=>!isNaN(v)) : [];
+      return [
+        titleFromName(ds.name), col.name, role, fmtNum(new Set(values).size),
+        nums.length ? formatMetricValue(Math.min(...nums)) : (dates.length ? new Date(Math.min(...dates)).toISOString().slice(0,10) : 'N/A'),
+        nums.length ? formatMetricValue(Math.max(...nums)) : (dates.length ? new Date(Math.max(...dates)).toISOString().slice(0,10) : 'N/A')
+      ];
+    })))
+  });
+  sections.push({
+    id:'missing-values',
+    title:'Missing Value Report',
+    md:markdownTable(['Dataset','Column','Missing Values'], datasets.flatMap(ds=>(ds.inferredSchema||[])
+      .filter(col=>col.missing>0)
+      .map(col=>[titleFromName(ds.name), col.name, fmtNum(col.missing)]))
+      .concat(datasets.every(ds=>(ds.inferredSchema||[]).every(col=>col.missing===0)) ? [['All datasets','All columns','0']] : []))
+  });
+  sections.push({
+    id:'relationships',
+    title:'Relationship Summary',
+    md:analytics.relationships.length
+      ? markdownTable(['From Dataset','From Column','To Dataset','To Column','Confidence'], analytics.relationships.map(r=>[
+          titleFromName(r.fromDataset), r.fromColumn, titleFromName(r.toDataset), r.toColumn, `${r.confidence}%`
+        ]))
+      : 'No candidate relationships were detected from metadata and sampled values.'
+  });
+  sections.push({
+    id:'kpis',
+    title:'KPI Summary',
+    md:markdownTable(['Dataset','KPI','Value','Definition'], analytics.datasetAnalytics.flatMap(item=>item.kpis.map(k=>[
+      titleFromName(item.dataset.name), k.label, k.value, k.sub || ''
+    ])))
+  });
+  sections.push({
+    id:'dashboards',
+    title:'Dashboard Summary',
+    md:markdownTable(['Dashboard','Type','Charts'], analytics.dashboards.map(page=>{
+      const charts = page.type==='dataset' ? analytics.datasetAnalytics[page.index].charts.length : (page.type==='relationships' ? (analytics.relationships.length ? 1 : 0) : projectOverviewCharts(analytics).length);
+      return [page.title, page.type, fmtNum(charts)];
+    }))
+  });
+  sections.push({
+    id:'analytics',
+    title:'Analytics Summary',
+    md:analytics.datasetAnalytics.map(item=>`### ${titleFromName(item.dataset.name)}\n\n${item.insights.map(insight=>`- ${insight}`).join('\n')}`).join('\n\n')
+  });
+  return sections;
+}
+function renderGeneratedDocs(){
+  const sections = buildUserProjectDocSections();
+  const toc = sections.map(s=>`<div class="toc-item" data-doc="${s.id}">${s.title}</div>`).join('');
+  const body = sections.map(s=>`<div class="doc-section" id="doc-${s.id}"><h2>${s.title}</h2>${mdToHtml(s.md)}</div>`).join('<hr>');
+  document.getElementById('content').innerHTML = `
+    <div class="page-head">
+      <div class="eyebrow">Documentation Center</div>
+      <h2>Generated Project Documentation</h2>
+      <p>Documentation generated from the active uploaded project, current filters, dataset metadata, KPIs, relationships and dashboards.</p>
+    </div>
+    <div class="doc-layout">
+      <div class="doc-toc">${toc}</div>
+      <div class="doc-content" id="docContent">${body}</div>
+    </div>
+  `;
+  bindDocToc(sections);
+}
+function bindDocToc(sections){
+  const tocItems = document.querySelectorAll('.toc-item');
+  tocItems.forEach(item=>{
+    item.addEventListener('click', ()=>{
+      document.getElementById('doc-'+item.dataset.doc).scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+  const docContentEl = document.getElementById('docContent');
+  if(!docContentEl) return;
+  docContentEl.addEventListener('scroll', ()=>{
+    let current = sections[0].id;
+    sections.forEach(s=>{
+      const el = document.getElementById('doc-'+s.id);
+      if(el && el.offsetTop - docContentEl.scrollTop < 120) current = s.id;
+    });
+    tocItems.forEach(i=>i.classList.toggle('active', i.dataset.doc===current));
+  });
+}
+function buildUserProjectMarkdown(){
+  const sections = buildUserProjectDocSections();
+  let md = `# Uploaded Project Documentation\n\n`;
+  md += `*Generated from ${fmtNum(userProjectAnalytics.datasets.length)} uploaded dataset${userProjectAnalytics.datasets.length===1?'':'s'}. ${filterSummary()}.*\n\n---\n\n`;
+  sections.forEach(section=>{ md += `## ${section.title}\n\n${section.md.trim()}\n\n`; });
+  return md;
+}
+
 function renderDocs(){
+  if(ProjectManager.state === APP_STATES.USER_PROJECT) return renderGeneratedDocs();
+  if(ProjectManager.state === APP_STATES.EMPTY) return renderStatePlaceholder('docs');
   const toc = DOC_SECTIONS.map(s=>`<div class="toc-item" data-doc="${s.id}">${s.title}</div>`).join('');
   const body = DOC_SECTIONS.map(s=>{
     let inner;
@@ -2084,21 +2463,7 @@ function renderDocs(){
       <div class="doc-content" id="docContent">${body}</div>
     </div>
   `;
-  const tocItems = document.querySelectorAll('.toc-item');
-  tocItems.forEach(item=>{
-    item.addEventListener('click', ()=>{
-      document.getElementById('doc-'+item.dataset.doc).scrollIntoView({behavior:'smooth',block:'start'});
-    });
-  });
-  const docContentEl = document.getElementById('docContent');
-  docContentEl.addEventListener('scroll', ()=>{
-    let current = DOC_SECTIONS[0].id;
-    DOC_SECTIONS.forEach(s=>{
-      const el = document.getElementById('doc-'+s.id);
-      if(el && el.offsetTop - docContentEl.scrollTop < 120) current = s.id;
-    });
-    tocItems.forEach(i=>i.classList.toggle('active', i.dataset.doc===current));
-  });
+  bindDocToc(DOC_SECTIONS);
 }
 
 function buildFullReportMarkdown(){
@@ -2112,12 +2477,12 @@ function buildFullReportMarkdown(){
 }
 
 function downloadReport(){
-  if(ProjectManager.state !== APP_STATES.DEMO) return;
-  const md = buildFullReportMarkdown();
+  if(ProjectManager.state === APP_STATES.EMPTY) return;
+  const md = ProjectManager.state === APP_STATES.USER_PROJECT ? buildUserProjectMarkdown() : buildFullReportMarkdown();
   const blob = new Blob([md], {type:'text/markdown'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'Meridian_Health_Analytics_Board_Report.md';
+  a.href = url; a.download = ProjectManager.state === APP_STATES.USER_PROJECT ? 'Uploaded_Project_Documentation.md' : 'Meridian_Health_Analytics_Board_Report.md';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
@@ -2183,7 +2548,7 @@ function updateAppShell(){
   document.querySelectorAll('.nav-item').forEach(item=>{
     item.classList.toggle('disabled', ProjectManager.state===APP_STATES.EMPTY && item.dataset.page!=='workspace');
   });
-  document.getElementById('downloadReportBtn').disabled = ProjectManager.state!==APP_STATES.DEMO;
+  document.getElementById('downloadReportBtn').disabled = ProjectManager.state===APP_STATES.EMPTY;
 }
 
 function goToPage(key){
@@ -2193,9 +2558,9 @@ function goToPage(key){
   document.getElementById('topbarTitle').textContent = meta.title;
   document.getElementById('topbarCrumb').textContent = meta.crumb;
   if(key==='workspace') renderWorkspace();
+  else if(key==='docs') renderDocs();
   else if(ProjectManager.state===APP_STATES.USER_PROJECT && key!=='docs') renderUserDashboardPage(key);
   else if(ProjectManager.state!==APP_STATES.DEMO) renderStatePlaceholder(key);
-  else if(key==='docs') renderDocs();
   else renderDashboardPage(key);
   updateAppShell();
   document.getElementById('content').scrollTop = 0;
