@@ -67,32 +67,32 @@ Legend:
 - [x] Responsive layouts
 
 ## Filters
-- [ ] Metadata-driven filters
-- [ ] Apply filters
-- [ ] Reset filters
-- [ ] Filter persistence during session
+- [x] Metadata-driven filters
+- [x] Apply filters
+- [x] Reset filters
+- [x] Filter persistence during session
 
 ---
 
 # Phase 6 – Documentation Engine
 
 ## Documentation
-- [ ] Executive summary
-- [ ] Dataset documentation
-- [ ] Relationship report
-- [ ] KPI report
+- [x] Executive summary
+- [x] Dataset documentation
+- [x] Relationship report
+- [x] KPI report
 - [ ] Power BI recreation guide
-- [ ] Markdown export improvements
+- [x] Markdown export improvements
 
 ---
 
 # Phase 7 – User Experience
 
 ## UI
-- [ ] Loading indicators
-- [ ] Success notifications
-- [ ] Error messages
-- [ ] Empty-state pages
+- [x] Loading indicators
+- [x] Success notifications
+- [x] Error messages
+- [x] Empty-state pages
 - [ ] Accessibility review
 
 ---
@@ -103,9 +103,9 @@ Legend:
 - [x] Upload workflow
 - [x] Load workflow
 - [x] Dashboard generation
-- [ ] Documentation generation
-- [ ] Filter testing
-- [ ] Reset testing
+- [x] Documentation generation
+- [x] Filter testing
+- [x] Reset testing
 
 ---
 
